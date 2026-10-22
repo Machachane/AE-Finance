@@ -1,10 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, CircleHelp, FileSpreadsheet,
   FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
 } from 'lucide-react';
 import { useResearchAirlines } from '@workspace/api-client-react';
 import type { AirlineFinancialRow, AirlineResearchInput } from '@workspace/api-client-react';
+
+type FinancialResultRow = AirlineFinancialRow & {
+  metricId?: number | null;
+  categoryId?: number | null;
+  category?: string;
+  amountUsd?: number | null;
+  unit?: string;
+  valueBasis?: string;
+  reportingEntity?: string;
+  fxRate?: number | null;
+  fxBasis?: string;
+};
+
+type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus' | 'sourceTitle'> & {
+  sourceTitle?: string | null;
+};
+
+const WORKBOOK_AIRLINE_COUNT = 142;
+const WORKBOOK_ROW_COUNT = 6358;
 
 const METRICS = [
   { name: 'Cargo Revenue', group: 'Revenue' },
@@ -14,6 +33,7 @@ const METRICS = [
   { name: 'EBIT', group: 'Profit & costs' },
   { name: 'Forward Sales & Deferred Revenue', group: 'Revenue' },
   { name: 'Fuel Costs', group: 'Profit & costs' },
+  { name: 'Lease Rents', group: 'Profit & costs' },
   { name: 'Long Term Debt & Lease Liabilities', group: 'Liabilities & equity' },
   { name: 'Net Interest', group: 'Profit & costs' },
   { name: 'Non-Operating Items', group: 'Profit & costs' },
@@ -49,29 +69,37 @@ const METRICS = [
 const GROUPS = ['All metrics', 'Revenue', 'Profit & costs', 'Assets', 'Liabilities & equity'];
 const DEFAULT_METRICS = METRICS.map((metric) => metric.name);
 const EXPORT_COLUMNS = [
-  { header: 'METRIC', key: 'metric' },
   { header: 'AIRLINE', key: 'airline' },
+  { header: 'ID_METRIC', key: 'metricId' },
+  { header: 'METRIC', key: 'metric' },
+  { header: 'ID_CATEGORY', key: 'categoryId' },
+  { header: 'CATEGORY', key: 'category' },
   { header: 'FINANCIAL YEAR', key: 'financialYear' },
   { header: 'REPORTING PERIOD', key: 'reportingPeriod' },
   { header: 'FISCAL YEAR-END', key: 'fiscalYearEnd' },
   { header: 'CURRENCY', key: 'currency' },
   { header: 'STATUS', key: 'status' },
   { header: 'AMOUNT', key: 'amount' },
+  { header: 'AMOUNT (USD)', key: 'amountUsd' },
   { header: 'DATE', key: 'date' },
   { header: 'Reporting Scope', key: 'reportingScope' },
   { header: 'IFRS16/ASC842 Adoption', key: 'ifrs16Asc842Adoption' },
   { header: 'In Administration', key: 'inAdministration' },
-  { header: 'SOURCE URL', key: 'sourceUrl' },
-  { header: 'SOURCE TITLE', key: 'sourceTitle' },
+  { header: 'UNIT', key: 'unit' },
+  { header: 'VALUE BASIS', key: 'valueBasis' },
+  { header: 'REPORTING ENTITY', key: 'reportingEntity' },
+  { header: 'SOURCE LINK', key: 'sourceUrl' },
+  { header: 'SOURCE NOTE', key: 'note' },
+  { header: 'FX RATE (units per USD)', key: 'fxRate' },
+  { header: 'FX BASIS', key: 'fxBasis' },
   { header: 'VERIFICATION STATUS', key: 'verificationStatus' },
-  { header: 'NOTES', key: 'note' },
 ] as const;
 
 function escapeXml(value: unknown) {
   return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-function rowValues(row: AirlineFinancialRow): unknown[] {
+function rowValues(row: FinancialResultRow): unknown[] {
   return EXPORT_COLUMNS.map(({ key }) => row[key]);
 }
 
@@ -86,7 +114,7 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function exportCsv(rows: AirlineFinancialRow[]) {
+function exportCsv(rows: FinancialResultRow[]) {
   const csvCell = (value: unknown) => {
     const text = value == null ? '' : String(value);
     return `"${text.replace(/"/g, '""')}"`;
@@ -143,33 +171,54 @@ function makeZip(files: { name: string; content: string }[]) {
   return new Blob([...localParts, ...centralParts, end].map(toArrayBuffer), { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
-function exportXlsx(rows: AirlineFinancialRow[]) {
+function exportXlsx(rows: FinancialResultRow[]) {
   const allRows = [EXPORT_COLUMNS.map(({ header }) => header), ...rows.map(rowValues)];
+  const sourceColumnIndex = EXPORT_COLUMNS.findIndex(({ key }) => key === 'sourceUrl');
+  const hyperlinks: { ref: string; relationshipId: string; url: string }[] = [];
   const sheetRows = allRows.map((row, rowIndex) => {
     const cells = row.map((value, columnIndex) => {
       const reference = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
+      if (rowIndex > 0 && columnIndex === sourceColumnIndex && typeof value === 'string' && value.startsWith('http')) {
+        hyperlinks.push({ ref: reference, relationshipId: `rId${hyperlinks.length + 1}`, url: value });
+      }
       if (typeof value === 'number') return `<c r="${reference}" t="n"><v>${value}</v></c>`;
       return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
     }).join('');
     return `<row r="${rowIndex + 1}">${cells}</row>`;
   }).join('');
+  const hyperlinkMarkup = hyperlinks.length
+    ? `<hyperlinks>${hyperlinks.map(({ ref, relationshipId }) => `<hyperlink ref="${ref}" r:id="${relationshipId}"/>`).join('')}</hyperlinks>`
+    : '';
+  const hyperlinkRelationships = hyperlinks.length
+    ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hyperlinks.map(({ relationshipId, url }) => `<Relationship Id="${relationshipId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXml(url)}" TargetMode="External"/>`).join('')}</Relationships>`
+    : '';
   const files = [
     { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
     { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
     { name: 'xl/workbook.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Airline research" sheetId="1" r:id="rId1"/></sheets></workbook>' },
     { name: 'xl/_rels/workbook.xml.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
-    { name: 'xl/worksheets/sheet1.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows}</sheetData></worksheet>` },
+    { name: 'xl/worksheets/sheet1.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData>${sheetRows}</sheetData>${hyperlinkMarkup}</worksheet>` },
+    ...(hyperlinkRelationships ? [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', content: hyperlinkRelationships }] : []),
   ];
   downloadBlob(makeZip(files), 'airline-financial-research.xlsx');
 }
 
-function formatAmount(row: AirlineFinancialRow) {
+function formatAmount(row: FinancialResultRow) {
   if (row.amount === null) return 'Unavailable';
   const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(row.amount);
   return row.currency ? `${row.currency} ${amount}` : amount;
 }
 
 export default function Home() {
+  const [sourceMode, setSourceMode] = useState<'workbook' | 'sec'>('workbook');
+  const [workbookRecords, setWorkbookRecords] = useState<WorkbookRecord[]>([]);
+  const [workbookLoading, setWorkbookLoading] = useState(true);
+  const [workbookError, setWorkbookError] = useState('');
+  const [workbookResult, setWorkbookResult] = useState<{
+    generatedAt: string;
+    rows: FinancialResultRow[];
+    coverageNotes: string[];
+  } | null>(null);
   const [airlines, setAirlines] = useState<string[]>([]);
   const [airlineDraft, setAirlineDraft] = useState('');
   const [airlineInputError, setAirlineInputError] = useState('');
@@ -178,8 +227,34 @@ export default function Home() {
   const [activeGroup, setActiveGroup] = useState('All metrics');
   const [metricSearch, setMetricSearch] = useState('');
   const research = useResearchAirlines();
-  const result = research.data;
-  const rows = result?.rows ?? [];
+  useEffect(() => {
+    let active = true;
+    fetch(`${import.meta.env.BASE_URL}data/airline-financials.json`)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Workbook data could not be loaded (${response.status}).`);
+        return response.json() as Promise<WorkbookRecord[]>;
+      })
+      .then((records) => {
+        if (!active) return;
+        if (!Array.isArray(records) || records.length !== WORKBOOK_ROW_COUNT) {
+          throw new Error('Workbook data failed its row-count check.');
+        }
+        setWorkbookRecords(records);
+        setWorkbookLoading(false);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setWorkbookError(error instanceof Error ? error.message : 'Workbook data could not be loaded.');
+        setWorkbookLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+  const workbookAirlines = useMemo(
+    () => [...new Set(workbookRecords.map((record) => record.airline))].sort((a, b) => a.localeCompare(b)),
+    [workbookRecords],
+  );
+  const result = sourceMode === 'workbook' ? workbookResult : research.data;
+  const rows: FinancialResultRow[] = result?.rows ?? [];
   const filteredMetrics = useMemo(() => METRICS.filter((metric) =>
     (activeGroup === 'All metrics' || metric.group === activeGroup) &&
     metric.name.toLowerCase().includes(metricSearch.toLowerCase()),
@@ -190,6 +265,8 @@ export default function Home() {
   const input: AirlineResearchInput | null = airlines.length && selectedMetrics.length && years.length
     ? { airlines, metrics: selectedMetrics, years }
     : null;
+  const isResearching = sourceMode === 'sec' && research.isPending;
+  const isWorkbookReady = !workbookLoading && !workbookError;
 
   const addAirlines = () => {
     const incoming = airlineDraft.split(/[,;\n]+/).map((name) => name.trim()).filter(Boolean);
@@ -216,8 +293,57 @@ export default function Home() {
     selected.includes(year) ? selected.filter((item) => item !== year) : [...selected, year].sort(),
   );
   const runResearch = () => {
-    if (!input || research.isPending) return;
-    research.mutate({ data: input });
+    if (!input || isResearching) return;
+    if (sourceMode === 'sec') {
+      research.mutate({ data: input });
+      return;
+    }
+
+    if (!isWorkbookReady) return;
+    const selectedAirlines = new Set(input.airlines.map((name) => name.trim().toLocaleLowerCase()));
+    const selectedMetrics = new Set(input.metrics);
+    const selectedYears = new Set(input.years.map(String));
+    const exactMatches = workbookRecords.filter((record) =>
+      selectedAirlines.has(record.airline.trim().toLocaleLowerCase()),
+    );
+    const rows = exactMatches
+      .filter((record) => selectedMetrics.has(record.metric) && selectedYears.has(record.financialYear))
+      .map((record): FinancialResultRow => ({
+        metric: record.metric,
+        airline: record.airline,
+        financialYear: record.financialYear,
+        reportingPeriod: record.reportingPeriod,
+        fiscalYearEnd: record.fiscalYearEnd,
+        currency: record.currency,
+        status: record.status,
+        amount: record.amount,
+        date: record.date,
+        reportingScope: record.reportingScope,
+        ifrs16Asc842Adoption: record.ifrs16Asc842Adoption,
+        inAdministration: record.inAdministration,
+        sourceUrl: record.sourceUrl,
+        sourceTitle: 'Open supplied source',
+        verificationStatus: 'needs_review',
+        note: record.note,
+        metricId: record.metricId,
+        categoryId: record.categoryId,
+        category: record.category,
+        amountUsd: record.amountUsd,
+        unit: record.unit,
+        valueBasis: record.valueBasis,
+        reportingEntity: record.reportingEntity,
+        fxRate: record.fxRate,
+        fxBasis: record.fxBasis,
+      }));
+    const unmatchedAirlines = input.airlines.filter((name) =>
+      !workbookAirlines.some((available) => available.toLocaleLowerCase() === name.trim().toLocaleLowerCase()),
+    );
+    const coverageNotes = [
+      `Imported from the supplied workbook: ${WORKBOOK_ROW_COUNT.toLocaleString()} source-linked rows across ${WORKBOOK_AIRLINE_COUNT} airline labels. These records have not been independently verified against every linked document; all are marked Needs review.`,
+      'The workbook includes derived values and links to third-party sources as well as company, exchange, and regulator publications. Review each source link, source note, and value basis before relying on an amount.',
+      ...(unmatchedAirlines.length ? [`No exact airline-name match was found in the workbook for: ${unmatchedAirlines.join(', ')}. No parent or subsidiary match was inferred.`] : []),
+    ];
+    setWorkbookResult({ generatedAt: new Date().toISOString(), rows, coverageNotes });
   };
   const errorText = research.error instanceof Error ? research.error.message : 'The research request could not be completed.';
 
@@ -229,7 +355,7 @@ export default function Home() {
           <span><span className="brand-name">Airline Financial Research</span><span className="brand-sub">Evidence workspace</span></span>
         </a>
         <div className="top-right">
-          <div className="source-indicator"><span className="source-dot" /><span>Official SEC data only</span></div>
+          <div className="source-indicator"><span className="source-dot" /><span>{sourceMode === 'workbook' ? 'Uploaded workbook · source-linked' : 'Live SEC EDGAR filings'}</span></div>
           <CircleHelp size={16} aria-label="Help" />
         </div>
       </header>
@@ -239,14 +365,24 @@ export default function Home() {
           <div>
             <div className="eyebrow">Airline financial research</div>
             <h1>Comparable financials.<br />A clear source trail.</h1>
-            <p>Research reported airline financials with a source trail you can inspect. Every value is tied to an official SEC filing—or marked unavailable.</p>
+            <p>Search the supplied 2025–26 airline workbook or live SEC filings. Imported figures retain their source links and are clearly marked for review.</p>
           </div>
-          <div className="record-mark">RESEARCH DESK<br />US SEC FILINGS · V.01</div>
+          <div className="record-mark">WORKBOOK DATASET<br />142 AIRLINES · 6,358 ROWS</div>
         </div>
 
         <div className="workspace-grid">
           <section className="panel setup-panel" aria-label="Research parameters">
             <div className="section-heading"><h2>Research parameters</h2><span className="step-number">01 / INPUT</span></div>
+
+            <div className="field-label"><span>Financial data source</span></div>
+            <div className="source-options" role="radiogroup" aria-label="Financial data source">
+              <button type="button" role="radio" aria-checked={sourceMode === 'workbook'} className={`source-option ${sourceMode === 'workbook' ? 'selected' : ''}`} onClick={() => setSourceMode('workbook')} data-testid="button-source-workbook">
+                <strong>Uploaded workbook</strong><span>2025–26 · 142 airlines · {workbookLoading ? 'Loading rows…' : `${workbookRecords.length.toLocaleString()} rows`}</span>
+              </button>
+              <button type="button" role="radio" aria-checked={sourceMode === 'sec'} className={`source-option ${sourceMode === 'sec' ? 'selected' : ''}`} onClick={() => setSourceMode('sec')} data-testid="button-source-sec">
+                <strong>Live SEC EDGAR</strong><span>US registrants · filing facts</span>
+              </button>
+            </div>
 
             <label className="field-label" htmlFor="airline-input">
               Airlines <span className="field-hint">{airlines.length} / 10</span>
@@ -256,12 +392,14 @@ export default function Home() {
                 id="airline-input"
                 className="text-input"
                 data-testid="input-airline"
+                list={sourceMode === 'workbook' ? 'workbook-airline-names' : undefined}
                 value={airlineDraft}
                 onChange={(event) => { setAirlineDraft(event.target.value); setAirlineInputError(''); }}
                 onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAirlines(); } }}
-                placeholder="Type a company name"
+                placeholder={sourceMode === 'workbook' ? 'Search an airline from the workbook' : 'Type an SEC registrant name'}
                 aria-label="Airline company name"
               />
+              {sourceMode === 'workbook' && <datalist id="workbook-airline-names">{workbookAirlines.map((name) => <option key={name} value={name} />)}</datalist>}
               <button className="small-button" type="button" onClick={addAirlines} disabled={!airlineDraft.trim() || airlines.length >= 10} data-testid="button-add-airline"><Plus size={14} /> Add</button>
             </div>
             {airlineInputError && <p className="input-error" role="alert">{airlineInputError}</p>}
@@ -281,7 +419,7 @@ export default function Home() {
             <div className="field-label">
               <span>Financial metrics</span>
               <div className="metric-tools">
-                <button className="small-button" type="button" onClick={() => setSelectedMetrics([...METRICS.map((metric) => metric.name)])} data-testid="button-select-all">All 37</button>
+                <button className="small-button" type="button" onClick={() => setSelectedMetrics([...METRICS.map((metric) => metric.name)])} data-testid="button-select-all">All {METRICS.length}</button>
                 <button className="small-button" type="button" onClick={() => setSelectedMetrics([])} data-testid="button-clear-metrics">Clear</button>
               </div>
             </div>
@@ -299,12 +437,12 @@ export default function Home() {
               </label>)}
               {filteredMetrics.length === 0 && <div className="metric-item">No metrics match this search.</div>}
             </div>
-            <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>37 available</span></div>
+              <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
-            <button className="run-button" type="button" onClick={runResearch} disabled={!input || research.isPending} data-testid="button-run-research">
-              {research.isPending ? <><LoaderCircle size={15} className="spin" /> Researching official filings</> : <>Run research <ArrowDownToLine size={15} /></>}
+            <button className="run-button" type="button" onClick={runResearch} disabled={!input || isResearching || (sourceMode === 'workbook' && !isWorkbookReady)} data-testid="button-run-research">
+              {isResearching ? <><LoaderCircle size={15} className="spin" /> Researching official filings</> : sourceMode === 'workbook' && workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Run research <ArrowDownToLine size={15} /></>}
             </button>
-            <div className="boundary-note"><Info size={14} /><span>Source boundary: official SEC company and filing data only. Private-company values and third-party estimates are not inferred; gaps remain unavailable.</span></div>
+            <div className="boundary-note"><Info size={14} /><span>{sourceMode === 'workbook' ? 'Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.' : 'SEC EDGAR company and filing data only. Private-company values and third-party estimates are not inferred; gaps remain unavailable.'}</span></div>
           </section>
 
           <section className="panel results-panel" aria-label="Research results">
@@ -324,42 +462,45 @@ export default function Home() {
               <span>{result ? `Generated ${new Date(result.generatedAt).toLocaleString()}` : 'No research run yet'}</span>
             </div>
 
-            {research.isPending && <div className="table-scroll" aria-label="Loading research results">
+            {isResearching && <div className="table-scroll" aria-label="Loading research results">
               <div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" />
             </div>}
-            {research.isError && <div className="error-box" role="alert" data-testid="status-research-error">
+            {sourceMode === 'sec' && research.isError && <div className="error-box" role="alert" data-testid="status-research-error">
               <AlertCircle size={17} /><div><strong>Research could not be completed</strong><p>{errorText}</p></div>
               <button className="retry-button" type="button" onClick={runResearch} disabled={!input} data-testid="button-retry-research">Retry</button>
             </div>}
+            {sourceMode === 'workbook' && workbookError && <div className="error-box" role="alert" data-testid="status-workbook-error">
+              <AlertCircle size={17} /><div><strong>Uploaded workbook data could not be loaded</strong><p>{workbookError}</p></div>
+            </div>}
 
-            {!research.isPending && !research.isError && result && result.coverageNotes.length > 0 && <div className="coverage" data-testid="status-partial-coverage">
+            {!isResearching && !(sourceMode === 'sec' && research.isError) && result && result.coverageNotes.length > 0 && <div className="coverage" data-testid="status-partial-coverage">
               <ShieldCheck size={15} />
               <div className="coverage-list"><strong>Coverage notes</strong>{result.coverageNotes.map((note, index) => <span key={`${index}-${note}`}>{note}</span>)}</div>
             </div>}
 
-            {!research.isPending && !research.isError && rows.length > 0 && <div className="table-scroll">
+            {!isResearching && !(sourceMode === 'sec' && research.isError) && rows.length > 0 && <div className="table-scroll">
               <table className="results-table">
                 <thead><tr>
-                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>Verification Status</th><th>Official Source</th><th>Notes</th>
+                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th style={{ textAlign: 'right' }}>AMOUNT (USD)</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Verification Status</th><th>Source Link</th><th>Source Note</th>
                 </tr></thead>
                 <tbody>{rows.map((row, index) => <tr key={`${row.airline}-${row.metric}-${row.financialYear}-${index}`} data-testid={`row-research-${index}`}>
                   <td className="metric-cell">{row.metric}</td><td className="airline-cell">{row.airline}</td><td>{row.financialYear || '—'}</td><td>{row.reportingPeriod || '—'}</td><td>{row.fiscalYearEnd || '—'}</td><td>{row.currency || '—'}</td><td>{row.status || '—'}</td>
-                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`}>{formatAmount(row)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td>
+                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`}>{formatAmount(row)}</td><td className="amount-cell">{row.amountUsd == null ? '—' : new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(row.amountUsd)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td><td>{row.valueBasis || '—'}</td>
                   <td><span className={`status-badge status-${row.verificationStatus}`}>{row.verificationStatus === 'needs_review' ? 'Needs review' : row.verificationStatus}</span></td>
-                  <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View SEC filing'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
+                  <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
                   <td><span className="note-text">{row.note || '—'}</span></td>
                 </tr>)}</tbody>
               </table>
             </div>}
 
-            {!research.isPending && !research.isError && result && rows.length === 0 && <div className="empty-state" data-testid="status-empty-results">
-              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>The official-source search completed, but no metric rows were available for this selection. Review the coverage notes or try a different airline or year.</p></div>
+            {!isResearching && !(sourceMode === 'sec' && research.isError) && result && rows.length === 0 && <div className="empty-state" data-testid="status-empty-results">
+              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>{sourceMode === 'workbook' ? 'No rows matched those exact airline names, metrics, and years. Choose a name from the suggestions or try another selection.' : 'The official-source search completed, but no metric rows were available for this selection. Review the coverage notes or try a different airline or year.'}</p></div>
             </div>}
-            {!research.isPending && !research.isError && !result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose the metrics and years, then run research. Results will appear here with the original SEC source and verification state attached.</p></div>
+            {!isResearching && !(sourceMode === 'sec' && research.isError) && !result && <div className="empty-state">
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose metrics and years, then run research. Workbook rows are source-linked and marked for review; SEC mode searches EDGAR live.</p></div>
             </div>}
 
-            <div className="footnote"><span>Unavailable values are preserved as unavailable; no gap-filling estimates are used.</span><span>WORKBOOK FIELDS · 16</span></div>
+            <div className="footnote"><span>{sourceMode === 'workbook' ? 'Workbook values, source notes, and reported/derived basis are preserved as supplied.' : 'Unavailable values are preserved as unavailable; no gap-filling estimates are used.'}</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
           </section>
         </div>
       </main>

@@ -119,6 +119,12 @@ const metricRules: Record<
     tags: [],
     aliases: ["fuelcost", "fuelcosts", "aircraftfuel", "fuelandrelatedcost"],
   },
+  "Lease Rents": {
+    tags: ["OperatingLeaseCost"],
+    aliases: ["leaserent", "leaserents", "operatingleasecost"],
+    note: "Uses a reported operating lease cost/rent concept only; other lease components are not inferred.",
+    needsReview: true,
+  },
   "Long Term Debt & Lease Liabilities": {
     tags: [
       "LongTermDebtAndFinanceLeaseObligations",
