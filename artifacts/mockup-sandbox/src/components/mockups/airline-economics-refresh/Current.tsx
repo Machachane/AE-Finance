@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, CircleHelp, FileSpreadsheet,
-  FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
+  FileText, Info, LoaderCircle, Search, ShieldCheck,
 } from 'lucide-react';
 import { useWorkbookPreview } from './use-workbook-preview';
 import type { AirlineFinancialRow, WorkbookPreviewInput } from './use-workbook-preview';
@@ -171,9 +171,7 @@ function formatAmount(row: AirlineFinancialRow) {
 }
 
 export default function Home() {
-  const [airlines, setAirlines] = useState<string[]>([]);
-  const [airlineDraft, setAirlineDraft] = useState('');
-  const [airlineInputError, setAirlineInputError] = useState('');
+  const [airline, setAirline] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([...DEFAULT_METRICS]);
   const [years, setYears] = useState<(2025 | 2026)[]>([2025, 2026]);
   const [activeGroup, setActiveGroup] = useState('All metrics');
@@ -188,28 +186,10 @@ export default function Home() {
   const verifiedCount = rows.filter((row) => row.verificationStatus === 'verified').length;
   const unavailableCount = rows.filter((row) => row.verificationStatus === 'unavailable').length;
   const reviewCount = rows.filter((row) => row.verificationStatus === 'needs_review').length;
-  const input: WorkbookPreviewInput | null = airlines.length && selectedMetrics.length && years.length
-    ? { airlines, metrics: selectedMetrics, years }
+  const input: WorkbookPreviewInput | null = airline.trim() && selectedMetrics.length && years.length
+    ? { airline: airline.trim(), metrics: selectedMetrics, years }
     : null;
 
-  const addAirlines = () => {
-    const incoming = airlineDraft.split(/[,;\n]+/).map((name) => name.trim()).filter(Boolean);
-    if (!incoming.length) return;
-    const existingNames = new Set(airlines.map((name) => name.toLowerCase()));
-    const uniqueIncoming = [...new Set(incoming.filter((name) => {
-      const key = name.toLowerCase();
-      if (existingNames.has(key)) return false;
-      existingNames.add(key);
-      return true;
-    }))];
-    if (airlines.length + uniqueIncoming.length > 10) {
-      setAirlineInputError(`You can research up to 10 airlines. There is room for ${10 - airlines.length} more.`);
-      return;
-    }
-    setAirlineInputError('');
-    setAirlines((existing) => [...existing, ...uniqueIncoming]);
-    setAirlineDraft('');
-  };
   const toggleMetric = (metric: string) => setSelectedMetrics((selected) =>
     selected.includes(metric) ? selected.filter((item) => item !== metric) : [...selected, metric],
   );
@@ -251,27 +231,19 @@ export default function Home() {
             <div className="section-heading"><h2>Research parameters</h2><span className="step-number">01 / INPUT</span></div>
 
             <label className="field-label" htmlFor="airline-input">
-              Airlines <span className="field-hint">{airlines.length} / 10</span>
+              Airline <span className="field-hint">One at a time</span>
             </label>
             <div className="airline-entry">
               <input
                 id="airline-input"
                 className="text-input"
                 data-testid="input-airline"
-                value={airlineDraft}
-                onChange={(event) => { setAirlineDraft(event.target.value); setAirlineInputError(''); }}
-                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAirlines(); } }}
-                placeholder="Type a company name"
-                aria-label="Airline company name"
+                value={airline}
+                onChange={(event) => setAirline(event.target.value)}
+                placeholder="Type one airline name"
+                aria-label="Airline"
               />
-              <button className="small-button" type="button" onClick={addAirlines} disabled={!airlineDraft.trim() || airlines.length >= 10} data-testid="button-add-airline"><Plus size={14} /> Add</button>
             </div>
-            {airlineInputError && <p className="input-error" role="alert">{airlineInputError}</p>}
-            {airlines.length > 0 && <div className="airline-list">
-              {airlines.map((airline, index) => <span className="airline-chip" key={`${airline}-${index}`} data-testid={`chip-airline-${index}`}>
-                {airline}<button type="button" aria-label={`Remove ${airline}`} onClick={() => setAirlines((all) => all.filter((_, itemIndex) => itemIndex !== index))} data-testid={`button-remove-airline-${index}`}><X size={12} /></button>
-              </span>)}
-            </div>}
 
             <div className="field-label"><span>Financial years</span><span className="field-hint">Select one or both</span></div>
             <div className="year-toggle">
@@ -358,7 +330,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>The official-source search completed, but no metric rows were available for this selection. Review the coverage notes or try a different airline or year.</p></div>
             </div>}
             {!research.isPending && !research.isError && !result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Search the supplied workbook.</h3><p>Add airlines, choose metrics and years, then run the workbook search. Source links and review status are preserved with each result.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Choose one airline at a time.</h3><p>Select an airline, choose metrics and years, then run research. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
             <div className="footnote"><span>Workbook values, source notes, and reported or derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · 16</span></div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export type WorkbookPreviewInput = {
-  airlines: string[];
+  airline: string;
   metrics: string[];
   years: (2025 | 2026)[];
 };
@@ -41,10 +41,10 @@ export function useWorkbookPreview() {
     setError(null);
     window.setTimeout(() => {
       const selectedMetrics = input.metrics.slice(0, 3);
-      const rows: AirlineFinancialRow[] = input.airlines.flatMap((airline) =>
-        selectedMetrics.flatMap((metric) => input.years.slice(0, 1).map((year) => ({
+      const rows: AirlineFinancialRow[] = selectedMetrics.flatMap((metric) =>
+        input.years.slice(0, 1).map((year) => ({
           metric,
-          airline,
+          airline: input.airline,
           financialYear: year,
           reportingPeriod: `FY ${year}`,
           fiscalYearEnd: '—',
@@ -59,7 +59,7 @@ export function useWorkbookPreview() {
           sourceTitle: null,
           verificationStatus: 'unavailable' as const,
           note: 'Preview only: workbook values are not loaded in this design sandbox.',
-        }))),
+        })),
       );
       setData({
         rows,

@@ -65,15 +65,12 @@ button { cursor: pointer; }
 .step-number { font:10px var(--app-font-mono);color:#9c9d90; }
 .field-label { display:flex;justify-content:space-between;align-items:center;margin:18px 0 8px;font-size:11px;font-weight:700;color:#40514f; }
 .field-hint { color:#929a94;font:10px var(--app-font-mono);font-weight:400; }
-.airline-entry { display:flex;gap:7px; }
+.airline-entry { display:block; }
 .text-input { width:100%;border:1px solid #d9d6cd;background:#fffefa;border-radius:7px;padding:10px 11px;font-size:12px;color:#243937;outline:none;transition:border-color .15s,box-shadow .15s; }
 .text-input:focus { border-color:#31776c;box-shadow:0 0 0 3px rgba(49,119,108,.1); }
 .text-input::placeholder { color:#abb0a8; }
 .small-button { display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #d9d6cd;background:#f5f3ec;border-radius:7px;padding:0 11px;color:#40524e;font-size:11px;font-weight:600;white-space:nowrap; }
 .small-button:hover { background:#ebe9df; }
-.airline-list { display:flex;flex-wrap:wrap;gap:6px;margin-top:9px; }
-.airline-chip { display:inline-flex;align-items:center;gap:7px;border:1px solid #d5e1da;background:#edf4ef;color:#285d50;border-radius:5px;padding:5px 7px 5px 9px;font-size:11px; }
-.airline-chip button { border:0;background:none;color:#6c8279;padding:0;display:flex; }
 .year-toggle { display:grid;grid-template-columns:1fr 1fr;gap:7px; }
 .year-option { border:1px solid #ddd9d0;background:#fffefa;border-radius:7px;padding:9px 11px;display:flex;align-items:center;gap:8px;font:12px var(--app-font-mono);color:#52625f; }
 .year-option input,.metric-item input { accent-color:#205b55; }
@@ -259,9 +256,7 @@ button { cursor: pointer; }
   border-radius: 3px;
   color: #375362;
 }
-.airline-refresh .airline-chip,
 .airline-refresh .year-option.selected { background: #eaf5f3; color: #176c69; }
-.airline-refresh .airline-chip { border-color: #bfdfda; }
 .airline-refresh .year-option { border-radius: 3px; }
 .airline-refresh .year-option input,
 .airline-refresh .metric-item input { accent-color: #147c79; }

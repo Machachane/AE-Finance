@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, FileSpreadsheet,
-  FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
+  FileText, Info, LoaderCircle, Search, ShieldCheck,
 } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
 
@@ -233,9 +233,7 @@ export default function Home() {
     rows: FinancialResultRow[];
     coverageNotes: string[];
   } | null>(null);
-  const [airlines, setAirlines] = useState<string[]>([]);
-  const [airlineDraft, setAirlineDraft] = useState('');
-  const [airlineInputError, setAirlineInputError] = useState('');
+  const [airline, setAirline] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([...DEFAULT_METRICS]);
   const [years, setYears] = useState<(2025 | 2026)[]>([2025, 2026]);
   const [activeGroup, setActiveGroup] = useState('All metrics');
@@ -277,24 +275,6 @@ export default function Home() {
   const reviewCount = rows.filter((row) => row.verificationStatus === 'needs_review').length;
   const isWorkbookReady = !workbookLoading && !workbookError;
 
-  const addAirlines = () => {
-    const incoming = airlineDraft.split(/[,;\n]+/).map((name) => name.trim()).filter(Boolean);
-    if (!incoming.length) return;
-    const existingNames = new Set(airlines.map((name) => name.toLowerCase()));
-    const uniqueIncoming = [...new Set(incoming.filter((name) => {
-      const key = name.toLowerCase();
-      if (existingNames.has(key)) return false;
-      existingNames.add(key);
-      return true;
-    }))];
-    if (airlines.length + uniqueIncoming.length > 10) {
-      setAirlineInputError(`You can research up to 10 airlines. There is room for ${10 - airlines.length} more.`);
-      return;
-    }
-    setAirlineInputError('');
-    setAirlines((existing) => [...existing, ...uniqueIncoming]);
-    setAirlineDraft('');
-  };
   const toggleMetric = (metric: string) => setSelectedMetrics((selected) =>
     selected.includes(metric) ? selected.filter((item) => item !== metric) : [...selected, metric],
   );
@@ -302,12 +282,12 @@ export default function Home() {
     selected.includes(year) ? selected.filter((item) => item !== year) : [...selected, year].sort(),
   );
   const runResearch = () => {
-    if (!airlines.length || !selectedMetrics.length || !years.length || !isWorkbookReady) return;
-    const selectedAirlines = new Set(airlines.map((name) => name.trim().toLocaleLowerCase()));
+    if (!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady) return;
+    const selectedAirline = airline.trim().toLocaleLowerCase();
     const selectedMetricsSet = new Set(selectedMetrics);
     const selectedYears = new Set(years.map(String));
     const exactMatches = workbookRecords.filter((record) =>
-      selectedAirlines.has(record.airline.trim().toLocaleLowerCase()),
+      record.airline.trim().toLocaleLowerCase() === selectedAirline,
     );
     const rows = exactMatches
       .filter((record) => selectedMetricsSet.has(record.metric) && selectedYears.has(record.financialYear))
@@ -338,13 +318,13 @@ export default function Home() {
         fxRate: record.fxRate,
         fxBasis: record.fxBasis,
       }));
-    const unmatchedAirlines = airlines.filter((name) =>
-      !workbookAirlines.some((available) => available.toLocaleLowerCase() === name.trim().toLocaleLowerCase()),
+    const unmatchedAirline = !workbookAirlines.some((available) =>
+      available.toLocaleLowerCase() === selectedAirline,
     );
     const coverageNotes = [
       `Imported from the supplied workbook: ${WORKBOOK_ROW_COUNT.toLocaleString()} source-linked rows across ${WORKBOOK_AIRLINE_COUNT} airline labels. These records have not been independently verified against every linked document; all are marked Needs review.`,
       'The workbook includes derived values and links to third-party sources as well as company, exchange, and regulator publications. Review each source link, source note, and value basis before relying on an amount.',
-      ...(unmatchedAirlines.length ? [`No exact airline-name match was found in the workbook for: ${unmatchedAirlines.join(', ')}. No parent or subsidiary match was inferred.`] : []),
+      ...(unmatchedAirline ? [`No exact airline-name match was found in the workbook for "${airline.trim()}". No parent or subsidiary match was inferred.`] : []),
     ];
     setWorkbookResult({ generatedAt: new Date().toISOString(), rows, coverageNotes });
   };
@@ -368,7 +348,7 @@ export default function Home() {
             <div className="section-heading"><h2>Research parameters</h2><span className="step-number">01 / INPUT</span></div>
 
             <label className="field-label" htmlFor="airline-input">
-              Airlines <span className="field-hint">{airlines.length} / 10</span>
+              Airline <span className="field-hint">One at a time</span>
             </label>
             <div className="airline-entry">
               <input
@@ -376,21 +356,13 @@ export default function Home() {
                 className="text-input"
                 data-testid="input-airline"
                 list="workbook-airline-names"
-                value={airlineDraft}
-                onChange={(event) => { setAirlineDraft(event.target.value); setAirlineInputError(''); }}
-                onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAirlines(); } }}
+                value={airline}
+                onChange={(event) => setAirline(event.target.value)}
                 placeholder="Search an airline from the workbook"
-                aria-label="Airline company name"
+                aria-label="Airline"
               />
               <datalist id="workbook-airline-names">{workbookAirlines.map((name) => <option key={name} value={name} />)}</datalist>
-              <button className="small-button" type="button" onClick={addAirlines} disabled={!airlineDraft.trim() || airlines.length >= 10} data-testid="button-add-airline"><Plus size={14} /> Add</button>
             </div>
-            {airlineInputError && <p className="input-error" role="alert">{airlineInputError}</p>}
-            {airlines.length > 0 && <div className="airline-list">
-              {airlines.map((airline, index) => <span className="airline-chip" key={`${airline}-${index}`} data-testid={`chip-airline-${index}`}>
-                {airline}<button type="button" aria-label={`Remove ${airline}`} onClick={() => setAirlines((all) => all.filter((_, itemIndex) => itemIndex !== index))} data-testid={`button-remove-airline-${index}`}><X size={12} /></button>
-              </span>)}
-            </div>}
 
             <div className="field-label"><span>Financial years</span><span className="field-hint">Select one or both</span></div>
             <div className="year-toggle">
@@ -422,7 +394,7 @@ export default function Home() {
             </div>
               <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
-            <button className="run-button" type="button" onClick={runResearch} disabled={!airlines.length || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
+            <button className="run-button" type="button" onClick={runResearch} disabled={!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
               {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Run research <ArrowDownToLine size={15} /></>}
             </button>
             <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
@@ -473,7 +445,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>No rows matched those exact airline names, metrics, and years. Choose a name from the suggestions or try another selection.</p></div>
             </div>}
             {!result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose metrics and years, then run research. Workbook rows are source-linked and marked for review.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Choose one airline at a time.</h3><p>Select an airline, choose metrics and years, then run research. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
             <div className="footnote"><span>Workbook values, source notes, and reported/derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
