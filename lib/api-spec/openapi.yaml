@@ -10,8 +10,6 @@ servers:
 tags:
   - name: health
     description: Health operations
-  - name: airline-research
-    description: Source-linked airline financial research from official SEC filings
 paths:
   /healthz:
     get:
@@ -26,40 +24,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
-  /airline-research:
-    post:
-      operationId: researchAirlines
-      tags: [airline-research]
-      summary: Research financial metrics for up to 10 airlines
-      description: >
-        Searches official SEC company and filing data. It does not infer private
-        company values or fill gaps from third-party sources; unavailable data is
-        returned with an explanatory status.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AirlineResearchInput"
-      responses:
-        "200":
-          description: Source-linked metric rows and coverage notes
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AirlineResearchResult"
-        "400":
-          description: Invalid airline list or metric selection
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "502":
-          description: Official SEC data is temporarily unavailable
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -69,85 +33,4 @@ components:
           type: string
       required:
         - status
-    AirlineResearchInput:
-      type: object
-      properties:
-        airlines:
-          type: array
-          minItems: 1
-          maxItems: 10
-          items:
-            type: string
-            minLength: 1
-            maxLength: 100
-        metrics:
-          type: array
-          minItems: 1
-          maxItems: 50
-          items:
-            type: string
-            minLength: 1
-            maxLength: 100
-        years:
-          type: array
-          minItems: 1
-          maxItems: 2
-          items:
-            type: integer
-            enum: [2025, 2026]
-      required: [airlines, metrics, years]
-    AirlineFinancialRow:
-      type: object
-      properties:
-        metric: { type: string }
-        airline: { type: string }
-        financialYear: { type: string }
-        reportingPeriod: { type: string }
-        fiscalYearEnd: { type: string }
-        currency: { type: string }
-        status: { type: string }
-        amount: { type: ["number", "null"] }
-        date: { type: ["string", "null"] }
-        reportingScope: { type: string }
-        ifrs16Asc842Adoption: { type: string }
-        inAdministration: { type: string }
-        sourceUrl: { type: ["string", "null"], format: uri }
-        sourceTitle: { type: ["string", "null"] }
-        verificationStatus: { type: string, enum: [verified, unavailable, needs_review] }
-        note: { type: string }
-      required:
-        - metric
-        - airline
-        - financialYear
-        - reportingPeriod
-        - fiscalYearEnd
-        - currency
-        - status
-        - amount
-        - date
-        - reportingScope
-        - ifrs16Asc842Adoption
-        - inAdministration
-        - sourceUrl
-        - sourceTitle
-        - verificationStatus
-        - note
-    AirlineResearchResult:
-      type: object
-      properties:
-        generatedAt: { type: string, format: date-time }
-        rows:
-          type: array
-          items:
-            $ref: "#/components/schemas/AirlineFinancialRow"
-        coverageNotes:
-          type: array
-          items:
-            type: string
-      required: [generatedAt, rows, coverageNotes]
-    ErrorResponse:
-      type: object
-      properties:
-        error: { type: string }
-      required: [error]
 

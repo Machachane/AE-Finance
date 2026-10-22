@@ -3,20 +3,34 @@ import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, FileSpreadsheet,
   FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
 } from 'lucide-react';
-import { useResearchAirlines } from '@workspace/api-client-react';
-import type { AirlineFinancialRow, AirlineResearchInput } from '@workspace/api-client-react';
 import SiteHeader from '@/components/SiteHeader';
 
-type FinancialResultRow = AirlineFinancialRow & {
+type FinancialResultRow = {
+  metric: string;
+  airline: string;
+  financialYear: string;
+  reportingPeriod: string;
+  fiscalYearEnd: string | null;
+  currency: string | null;
+  status: string | null;
+  amount: number | null;
+  date: string | null;
+  reportingScope: string | null;
+  ifrs16Asc842Adoption: string | null;
+  inAdministration: string | null;
+  sourceUrl: string | null;
+  sourceTitle?: string | null;
+  verificationStatus: 'verified' | 'unavailable' | 'needs_review';
+  note: string | null;
   metricId?: number | null;
   categoryId?: number | null;
-  category?: string;
+  category?: string | null;
   amountUsd?: number | null;
-  unit?: string;
-  valueBasis?: string;
-  reportingEntity?: string;
+  unit?: string | null;
+  valueBasis?: string | null;
+  reportingEntity?: string | null;
   fxRate?: number | null;
-  fxBasis?: string;
+  fxBasis?: string | null;
 };
 
 type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus' | 'sourceTitle'> & {
@@ -211,7 +225,6 @@ function formatAmount(row: FinancialResultRow) {
 }
 
 export default function Home() {
-  const [sourceMode, setSourceMode] = useState<'workbook' | 'sec'>('workbook');
   const [workbookRecords, setWorkbookRecords] = useState<WorkbookRecord[]>([]);
   const [workbookLoading, setWorkbookLoading] = useState(true);
   const [workbookError, setWorkbookError] = useState('');
@@ -227,7 +240,6 @@ export default function Home() {
   const [years, setYears] = useState<(2025 | 2026)[]>([2025, 2026]);
   const [activeGroup, setActiveGroup] = useState('All metrics');
   const [metricSearch, setMetricSearch] = useState('');
-  const research = useResearchAirlines();
   useEffect(() => {
     let active = true;
     fetch(`${import.meta.env.BASE_URL}data/airline-financials.json`)
@@ -254,7 +266,7 @@ export default function Home() {
     () => [...new Set(workbookRecords.map((record) => record.airline))].sort((a, b) => a.localeCompare(b)),
     [workbookRecords],
   );
-  const result = sourceMode === 'workbook' ? workbookResult : research.data;
+  const result = workbookResult;
   const rows: FinancialResultRow[] = result?.rows ?? [];
   const filteredMetrics = useMemo(() => METRICS.filter((metric) =>
     (activeGroup === 'All metrics' || metric.group === activeGroup) &&
@@ -263,10 +275,6 @@ export default function Home() {
   const verifiedCount = rows.filter((row) => row.verificationStatus === 'verified').length;
   const unavailableCount = rows.filter((row) => row.verificationStatus === 'unavailable').length;
   const reviewCount = rows.filter((row) => row.verificationStatus === 'needs_review').length;
-  const input: AirlineResearchInput | null = airlines.length && selectedMetrics.length && years.length
-    ? { airlines, metrics: selectedMetrics, years }
-    : null;
-  const isResearching = sourceMode === 'sec' && research.isPending;
   const isWorkbookReady = !workbookLoading && !workbookError;
 
   const addAirlines = () => {
@@ -294,21 +302,15 @@ export default function Home() {
     selected.includes(year) ? selected.filter((item) => item !== year) : [...selected, year].sort(),
   );
   const runResearch = () => {
-    if (!input || isResearching) return;
-    if (sourceMode === 'sec') {
-      research.mutate({ data: input });
-      return;
-    }
-
-    if (!isWorkbookReady) return;
-    const selectedAirlines = new Set(input.airlines.map((name) => name.trim().toLocaleLowerCase()));
-    const selectedMetrics = new Set(input.metrics);
-    const selectedYears = new Set(input.years.map(String));
+    if (!airlines.length || !selectedMetrics.length || !years.length || !isWorkbookReady) return;
+    const selectedAirlines = new Set(airlines.map((name) => name.trim().toLocaleLowerCase()));
+    const selectedMetricsSet = new Set(selectedMetrics);
+    const selectedYears = new Set(years.map(String));
     const exactMatches = workbookRecords.filter((record) =>
       selectedAirlines.has(record.airline.trim().toLocaleLowerCase()),
     );
     const rows = exactMatches
-      .filter((record) => selectedMetrics.has(record.metric) && selectedYears.has(record.financialYear))
+      .filter((record) => selectedMetricsSet.has(record.metric) && selectedYears.has(record.financialYear))
       .map((record): FinancialResultRow => ({
         metric: record.metric,
         airline: record.airline,
@@ -336,7 +338,7 @@ export default function Home() {
         fxRate: record.fxRate,
         fxBasis: record.fxBasis,
       }));
-    const unmatchedAirlines = input.airlines.filter((name) =>
+    const unmatchedAirlines = airlines.filter((name) =>
       !workbookAirlines.some((available) => available.toLocaleLowerCase() === name.trim().toLocaleLowerCase()),
     );
     const coverageNotes = [
@@ -346,18 +348,17 @@ export default function Home() {
     ];
     setWorkbookResult({ generatedAt: new Date().toISOString(), rows, coverageNotes });
   };
-  const errorText = research.error instanceof Error ? research.error.message : 'The research request could not be completed.';
 
   return (
     <div className="app-shell">
-      <SiteHeader activePage="research" status={sourceMode === 'workbook' ? 'Uploaded workbook · source-linked' : 'Live SEC EDGAR filings'} />
+      <SiteHeader activePage="research" />
 
       <main className="page">
         <div className="hero">
           <div>
             <div className="eyebrow">Airline financial research</div>
             <h1>Comparable financials.<br />A clear source trail.</h1>
-            <p>Search the supplied 2025–26 airline workbook or live SEC filings. Imported figures retain their source links and are clearly marked for review.</p>
+            <p>Search the supplied 2025–26 airline workbook. Imported figures retain their source links and are clearly marked for review.</p>
           </div>
           <div className="record-mark">WORKBOOK DATASET<br />142 AIRLINES · 6,358 ROWS</div>
         </div>
@@ -365,16 +366,6 @@ export default function Home() {
         <div className="workspace-grid">
           <section className="panel setup-panel" aria-label="Research parameters">
             <div className="section-heading"><h2>Research parameters</h2><span className="step-number">01 / INPUT</span></div>
-
-            <div className="field-label"><span>Financial data source</span></div>
-            <div className="source-options" role="radiogroup" aria-label="Financial data source">
-              <button type="button" role="radio" aria-checked={sourceMode === 'workbook'} className={`source-option ${sourceMode === 'workbook' ? 'selected' : ''}`} onClick={() => setSourceMode('workbook')} data-testid="button-source-workbook">
-                <strong>Uploaded workbook</strong><span>2025–26 · 142 airlines · {workbookLoading ? 'Loading rows…' : `${workbookRecords.length.toLocaleString()} rows`}</span>
-              </button>
-              <button type="button" role="radio" aria-checked={sourceMode === 'sec'} className={`source-option ${sourceMode === 'sec' ? 'selected' : ''}`} onClick={() => setSourceMode('sec')} data-testid="button-source-sec">
-                <strong>Live SEC EDGAR</strong><span>US registrants · filing facts</span>
-              </button>
-            </div>
 
             <label className="field-label" htmlFor="airline-input">
               Airlines <span className="field-hint">{airlines.length} / 10</span>
@@ -384,14 +375,14 @@ export default function Home() {
                 id="airline-input"
                 className="text-input"
                 data-testid="input-airline"
-                list={sourceMode === 'workbook' ? 'workbook-airline-names' : undefined}
+                list="workbook-airline-names"
                 value={airlineDraft}
                 onChange={(event) => { setAirlineDraft(event.target.value); setAirlineInputError(''); }}
                 onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addAirlines(); } }}
-                placeholder={sourceMode === 'workbook' ? 'Search an airline from the workbook' : 'Type an SEC registrant name'}
+                placeholder="Search an airline from the workbook"
                 aria-label="Airline company name"
               />
-              {sourceMode === 'workbook' && <datalist id="workbook-airline-names">{workbookAirlines.map((name) => <option key={name} value={name} />)}</datalist>}
+              <datalist id="workbook-airline-names">{workbookAirlines.map((name) => <option key={name} value={name} />)}</datalist>
               <button className="small-button" type="button" onClick={addAirlines} disabled={!airlineDraft.trim() || airlines.length >= 10} data-testid="button-add-airline"><Plus size={14} /> Add</button>
             </div>
             {airlineInputError && <p className="input-error" role="alert">{airlineInputError}</p>}
@@ -431,10 +422,10 @@ export default function Home() {
             </div>
               <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
-            <button className="run-button" type="button" onClick={runResearch} disabled={!input || isResearching || (sourceMode === 'workbook' && !isWorkbookReady)} data-testid="button-run-research">
-              {isResearching ? <><LoaderCircle size={15} className="spin" /> Researching official filings</> : sourceMode === 'workbook' && workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Run research <ArrowDownToLine size={15} /></>}
+            <button className="run-button" type="button" onClick={runResearch} disabled={!airlines.length || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
+              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Run research <ArrowDownToLine size={15} /></>}
             </button>
-            <div className="boundary-note"><Info size={14} /><span>{sourceMode === 'workbook' ? 'Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.' : 'SEC EDGAR company and filing data only. Private-company values and third-party estimates are not inferred; gaps remain unavailable.'}</span></div>
+            <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
           </section>
 
           <section className="panel results-panel" aria-label="Research results">
@@ -454,23 +445,16 @@ export default function Home() {
               <span>{result ? `Generated ${new Date(result.generatedAt).toLocaleString()}` : 'No research run yet'}</span>
             </div>
 
-            {isResearching && <div className="table-scroll" aria-label="Loading research results">
-              <div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" /><div className="loading-row" />
-            </div>}
-            {sourceMode === 'sec' && research.isError && <div className="error-box" role="alert" data-testid="status-research-error">
-              <AlertCircle size={17} /><div><strong>Research could not be completed</strong><p>{errorText}</p></div>
-              <button className="retry-button" type="button" onClick={runResearch} disabled={!input} data-testid="button-retry-research">Retry</button>
-            </div>}
-            {sourceMode === 'workbook' && workbookError && <div className="error-box" role="alert" data-testid="status-workbook-error">
+            {workbookError && <div className="error-box" role="alert" data-testid="status-workbook-error">
               <AlertCircle size={17} /><div><strong>Uploaded workbook data could not be loaded</strong><p>{workbookError}</p></div>
             </div>}
 
-            {!isResearching && !(sourceMode === 'sec' && research.isError) && result && result.coverageNotes.length > 0 && <div className="coverage" data-testid="status-partial-coverage">
+            {result && result.coverageNotes.length > 0 && <div className="coverage" data-testid="status-partial-coverage">
               <ShieldCheck size={15} />
               <div className="coverage-list"><strong>Coverage notes</strong>{result.coverageNotes.map((note, index) => <span key={`${index}-${note}`}>{note}</span>)}</div>
             </div>}
 
-            {!isResearching && !(sourceMode === 'sec' && research.isError) && rows.length > 0 && <div className="table-scroll">
+            {rows.length > 0 && <div className="table-scroll">
               <table className="results-table">
                 <thead><tr>
                   <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th style={{ textAlign: 'right' }}>AMOUNT (USD)</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Verification Status</th><th>Source Link</th><th>Source Note</th>
@@ -485,14 +469,14 @@ export default function Home() {
               </table>
             </div>}
 
-            {!isResearching && !(sourceMode === 'sec' && research.isError) && result && rows.length === 0 && <div className="empty-state" data-testid="status-empty-results">
-              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>{sourceMode === 'workbook' ? 'No rows matched those exact airline names, metrics, and years. Choose a name from the suggestions or try another selection.' : 'The official-source search completed, but no metric rows were available for this selection. Review the coverage notes or try a different airline or year.'}</p></div>
+            {result && rows.length === 0 && <div className="empty-state" data-testid="status-empty-results">
+              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>No rows matched those exact airline names, metrics, and years. Choose a name from the suggestions or try another selection.</p></div>
             </div>}
-            {!isResearching && !(sourceMode === 'sec' && research.isError) && !result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose metrics and years, then run research. Workbook rows are source-linked and marked for review; SEC mode searches EDGAR live.</p></div>
+            {!result && <div className="empty-state">
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose metrics and years, then run research. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
-            <div className="footnote"><span>{sourceMode === 'workbook' ? 'Workbook values, source notes, and reported/derived basis are preserved as supplied.' : 'Unavailable values are preserved as unavailable; no gap-filling estimates are used.'}</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
+            <div className="footnote"><span>Workbook values, source notes, and reported/derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
           </section>
         </div>
       </main>

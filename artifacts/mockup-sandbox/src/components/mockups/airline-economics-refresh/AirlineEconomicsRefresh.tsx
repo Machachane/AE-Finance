@@ -3,8 +3,8 @@ import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, CircleHelp, FileSpreadsheet,
   FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
 } from 'lucide-react';
-import { useResearchAirlines } from './use-local-research';
-import type { AirlineFinancialRow, AirlineResearchInput } from './use-local-research';
+import { useWorkbookPreview } from './use-workbook-preview';
+import type { AirlineFinancialRow, WorkbookPreviewInput } from './use-workbook-preview';
 import './_group.css';
 
 const METRICS = [
@@ -178,7 +178,7 @@ export default function Home() {
   const [years, setYears] = useState<(2025 | 2026)[]>([2025, 2026]);
   const [activeGroup, setActiveGroup] = useState('All metrics');
   const [metricSearch, setMetricSearch] = useState('');
-  const research = useResearchAirlines();
+  const research = useWorkbookPreview();
   const result = research.data;
   const rows = result?.rows ?? [];
   const filteredMetrics = useMemo(() => METRICS.filter((metric) =>
@@ -188,7 +188,7 @@ export default function Home() {
   const verifiedCount = rows.filter((row) => row.verificationStatus === 'verified').length;
   const unavailableCount = rows.filter((row) => row.verificationStatus === 'unavailable').length;
   const reviewCount = rows.filter((row) => row.verificationStatus === 'needs_review').length;
-  const input: AirlineResearchInput | null = airlines.length && selectedMetrics.length && years.length
+  const input: WorkbookPreviewInput | null = airlines.length && selectedMetrics.length && years.length
     ? { airlines, metrics: selectedMetrics, years }
     : null;
 
@@ -231,7 +231,7 @@ export default function Home() {
           <span><span className="brand-name">Airline Financial Research</span><span className="brand-sub">Evidence workspace</span></span>
         </a>
         <div className="top-right">
-          <div className="source-indicator"><span className="source-dot" /><span>Official SEC data only</span></div>
+          <div className="source-indicator"><span className="source-dot" /><span>Uploaded workbook · source-linked</span></div>
           <CircleHelp size={16} aria-label="Help" />
         </div>
       </header>
@@ -241,9 +241,9 @@ export default function Home() {
           <div>
             <div className="eyebrow">Airline financial research</div>
             <h1>Comparable financials.<br />A clear source trail.</h1>
-            <p>Research reported airline financials with a source trail you can inspect. Every value is tied to an official filing—or marked unavailable.</p>
+            <p>Search the supplied airline workbook. Imported figures retain their source links and are clearly marked for review.</p>
           </div>
-          <div className="record-mark">RESEARCH DESK<br />US SEC FILINGS · V.01</div>
+          <div className="record-mark">RESEARCH DESK<br />WORKBOOK DATA · V.01</div>
         </div>
 
         <div className="workspace-grid">
@@ -304,9 +304,9 @@ export default function Home() {
             <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>37 available</span></div>
 
             <button className="run-button" type="button" onClick={runResearch} disabled={!input || research.isPending} data-testid="button-run-research">
-              {research.isPending ? <><LoaderCircle size={15} className="spin" /> Researching official filings</> : <>Run research <ArrowDownToLine size={15} /></>}
+              {research.isPending ? <><LoaderCircle size={15} className="spin" /> Preparing workbook results</> : <>Run research <ArrowDownToLine size={15} /></>}
             </button>
-            <div className="boundary-note"><Info size={14} /><span>Source boundary: official SEC company and filing data only. Private-company values and third-party estimates are not inferred; gaps remain unavailable.</span></div>
+            <div className="boundary-note"><Info size={14} /><span>Values, source notes, and reported or derived basis are preserved as supplied in the workbook.</span></div>
           </section>
 
           <section className="panel results-panel" aria-label="Research results">
@@ -348,7 +348,7 @@ export default function Home() {
                   <td className="metric-cell">{row.metric}</td><td className="airline-cell">{row.airline}</td><td>{row.financialYear || '—'}</td><td>{row.reportingPeriod || '—'}</td><td>{row.fiscalYearEnd || '—'}</td><td>{row.currency || '—'}</td><td>{row.status || '—'}</td>
                   <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`}>{formatAmount(row)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td>
                   <td><span className={`status-badge status-${row.verificationStatus}`}>{row.verificationStatus === 'needs_review' ? 'Needs review' : row.verificationStatus}</span></td>
-                  <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View SEC filing'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
+                  <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
                   <td><span className="note-text">{row.note || '—'}</span></td>
                 </tr>)}</tbody>
               </table>
@@ -358,10 +358,10 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>The official-source search completed, but no metric rows were available for this selection. Review the coverage notes or try a different airline or year.</p></div>
             </div>}
             {!research.isPending && !research.isError && !result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Start with a filing, not a guess.</h3><p>Add one or more airlines, choose the metrics and years, then run research. Results will appear here with the original SEC source and verification state attached.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Search the supplied workbook.</h3><p>Add airlines, choose metrics and years, then run the workbook search. Source links and review status are preserved with each result.</p></div>
             </div>}
 
-            <div className="footnote"><span>Unavailable values are preserved as unavailable; no gap-filling estimates are used.</span><span>WORKBOOK FIELDS · 16</span></div>
+            <div className="footnote"><span>Workbook values, source notes, and reported or derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · 16</span></div>
           </section>
         </div>
       </main>

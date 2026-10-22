@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export type AirlineResearchInput = {
+export type WorkbookPreviewInput = {
   airlines: string[];
   metrics: string[];
   years: (2025 | 2026)[];
@@ -25,18 +25,18 @@ export type AirlineFinancialRow = {
   note: string | null;
 };
 
-type ResearchResult = {
+type WorkbookPreviewResult = {
   rows: AirlineFinancialRow[];
   generatedAt: string;
   coverageNotes: string[];
 };
 
-export function useResearchAirlines() {
-  const [data, setData] = useState<ResearchResult | undefined>();
+export function useWorkbookPreview() {
+  const [data, setData] = useState<WorkbookPreviewResult | undefined>();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const mutate = ({ data: input }: { data: AirlineResearchInput }) => {
+  const mutate = ({ data: input }: { data: WorkbookPreviewInput }) => {
     setIsPending(true);
     setError(null);
     window.setTimeout(() => {
@@ -58,15 +58,15 @@ export function useResearchAirlines() {
           sourceUrl: null,
           sourceTitle: null,
           verificationStatus: 'unavailable' as const,
-          note: 'Preview stub: no live filing value supplied.',
+          note: 'Preview only: workbook values are not loaded in this design sandbox.',
         }))),
       );
       setData({
         rows,
         generatedAt: new Date().toISOString(),
         coverageNotes: [
-          'SEC EDGAR is the only source boundary. This preview uses a local no-op data stub; it does not retrieve filings.',
-          'Values without a verified filing reference remain unavailable. No estimates have been inferred.',
+          'This design preview does not load workbook values or verify source links.',
+          'Unavailable values remain blank; no estimates are inferred.',
         ],
       });
       setIsPending(false);

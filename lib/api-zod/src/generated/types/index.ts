@@ -6,10 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './airlineFinancialRow';
-export * from './airlineFinancialRowVerificationStatus';
-export * from './airlineResearchInput';
-export * from './airlineResearchInputYearsItem';
-export * from './airlineResearchResult';
-export * from './errorResponse';
 export * from './healthStatus';

@@ -6,28 +6,21 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
-  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
-  MutationFunction,
   QueryFunction,
   QueryKey,
-  UseMutationOptions,
-  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
-  AirlineResearchInput,
-  AirlineResearchResult,
-  ErrorResponse,
   HealthStatus
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
-import type { ErrorType , BodyType } from '../custom-fetch';
+import type { ErrorType } from '../custom-fetch';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -130,93 +123,4 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
-
-export const getResearchAirlinesUrl = () => {
-
-
-
-
-  return `/api/airline-research`
-}
-
-/**
- * Searches official SEC company and filing data. It does not infer private company values or fill gaps from third-party sources; unavailable data is returned with an explanatory status.
- * @summary Research financial metrics for up to 10 airlines
- */
-export const researchAirlines = async (airlineResearchInput: AirlineResearchInput, options?: Parameters<typeof customFetch>[1]): Promise<AirlineResearchResult> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return customFetch<AirlineResearchResult>(getResearchAirlinesUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(airlineResearchInput)
-  }
-);}
-
-
-
-
-
-export const getResearchAirlinesMutationKey = () => ['researchAirlines'] as const;
-
-export const getResearchAirlinesMutationOptions = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof researchAirlines>>, TError,ResearchAirlinesMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof researchAirlines>>, TError,ResearchAirlinesMutationVariables, TContext> => {
-
-const mutationKey = getResearchAirlinesMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof researchAirlines>>, ResearchAirlinesMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  researchAirlines(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ResearchAirlinesMutationResult = NonNullable<Awaited<ReturnType<typeof researchAirlines>>>
-    export type ResearchAirlinesMutationBody = BodyType<AirlineResearchInput>
-    export type ResearchAirlinesMutationError = ErrorType<ErrorResponse>
-    export type ResearchAirlinesMutationVariables = {data: BodyType<AirlineResearchInput>}
-
-    /**
- * @summary Research financial metrics for up to 10 airlines
- */
-export const useResearchAirlines = <TError = ErrorType<ErrorResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof researchAirlines>>, TError,ResearchAirlinesMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof researchAirlines>>,
-        TError,
-        ResearchAirlinesMutationVariables,
-        TContext
-      > => {
-      return useMutation(getResearchAirlinesMutationOptions(options));
-    }
 

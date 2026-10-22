@@ -121,17 +121,6 @@ button { cursor: pointer; }
 .metric-item:hover { background:#f2f2eb; }
 .metric-item input { width:13px;height:13px;margin:0; }
 .metric-footer { display:flex;justify-content:space-between;align-items:center;margin-top:7px;color:#89918b;font:10px var(--app-font-mono); }
-.source-options { display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:15px; }
-.source-option {
-  display:flex;flex-direction:column;gap:4px;text-align:left;
-  border:1px solid #dfe6eb;border-radius:7px;background:#fff;
-  padding:9px 10px;color:#40566a;transition:border-color .15s,background .15s;
-}
-.source-option strong { font-size:11px;font-weight:700; }
-.source-option span { color:#7c8b97;font-size:10px; }
-.source-option:hover { border-color:#9cbab9; }
-.source-option.selected { border-color:#58aaa4;background:#f0f8f7;box-shadow:inset 3px 0 #31a9a0; }
-.source-option.selected strong { color:#164c55; }
 .run-button { width:100%;border:0;border-radius:7px;background:#205b55;color:#f7f5ec;display:flex;align-items:center;justify-content:center;gap:9px;padding:12px;margin-top:18px;font-size:12px;font-weight:700;box-shadow:0 3px 7px rgba(32,91,85,.12);transition:background .15s,transform .15s; }
 .run-button:hover:not(:disabled) { background:#174a45;transform:translateY(-1px); }
 .run-button:disabled { opacity:.52;cursor:not-allowed; }
