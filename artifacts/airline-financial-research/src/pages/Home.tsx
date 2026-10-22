@@ -225,7 +225,7 @@ export default function Home() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="/" aria-label="Airline Financial Research home">
-          <span className="brand-mark"><BookOpen size={17} strokeWidth={1.7} /></span>
+          <span className="brand-mark"><img src="/images/airline-economics-logo.png" alt="Airline Economics" /></span>
           <span><span className="brand-name">Airline Financial Research</span><span className="brand-sub">Evidence workspace</span></span>
         </a>
         <div className="top-right">
@@ -237,9 +237,9 @@ export default function Home() {
       <main className="page">
         <div className="hero">
           <div>
-            <div className="eyebrow">Financial research / Airlines</div>
-            <h1>Build a comparable view.</h1>
-            <p>Research reported airline financials with a source trail you can inspect. Every value is tied to an official filing—or marked unavailable.</p>
+            <div className="eyebrow">Airline financial research</div>
+            <h1>Comparable financials.<br />A clear source trail.</h1>
+            <p>Research reported airline financials with a source trail you can inspect. Every value is tied to an official SEC filing—or marked unavailable.</p>
           </div>
           <div className="record-mark">RESEARCH DESK<br />US SEC FILINGS · V.01</div>
         </div>

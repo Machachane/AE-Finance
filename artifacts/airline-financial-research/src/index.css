@@ -183,3 +183,164 @@ button { cursor: pointer; }
   .meta-summary { flex-wrap:wrap;gap:10px; }.coverage { padding:12px 15px; }.footnote { flex-direction:column;padding:12px 15px; }
   .empty-state { min-height:340px; }
 }
+
+/* Airline Economics research desk — precise, source-first editorial workspace */
+:root {
+  --background: 210 25% 98%;
+  --foreground: 215 35% 17%;
+  --border: 214 20% 87%;
+  --input: 214 20% 84%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 35% 17%;
+  --primary: 176 54% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 24% 94%;
+  --secondary-foreground: 215 32% 22%;
+  --muted: 210 24% 94%;
+  --muted-foreground: 215 13% 47%;
+  --accent: 176 54% 35%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 176 54% 35%;
+}
+
+html, body, #root { min-height: 100%; width: 100%; }
+body { background:#f7f9fb; color:#1c2c40; }
+button, a, input { -webkit-tap-highlight-color:transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible {
+  outline:3px solid rgba(37,157,151,.48);
+  outline-offset:2px;
+}
+.app-shell { min-height:100dvh; overflow-x:clip; background:#f7f9fb; }
+.topbar {
+  height:76px;
+  padding:0 clamp(20px,5vw,76px);
+  background:#102238;
+  color:#f5f8fa;
+  border:0;
+  box-shadow:0 2px 12px rgba(11,30,49,.12);
+}
+.brand { gap:17px; min-width:0; }
+.brand-mark {
+  width:auto;height:auto;display:block;flex:0 0 auto;
+  background:transparent;border-radius:0;color:inherit;
+}
+.brand-mark img { display:block;width:188px;height:auto;max-height:42px;object-fit:contain;mix-blend-mode:screen; }
+.brand-name { display:block;font-size:13px;font-weight:650;letter-spacing:.005em;color:#f3f6f8; }
+.brand-sub { display:block;margin-top:4px;color:#aebdca;font-size:9px;letter-spacing:.12em; }
+.top-right { color:#c4d0d9;gap:14px; }
+.source-indicator { font-size:11px;letter-spacing:.01em; }
+.source-dot { width:8px;height:8px;background:#55c4ba;box-shadow:0 0 0 3px rgba(85,196,186,.13); }
+.top-right > svg { color:#a9bac8; }
+.page { max-width:1460px;padding:42px clamp(20px,5vw,76px) 68px; }
+.hero {
+  position:relative;display:block;text-align:center;
+  margin:0 auto 35px;padding:6px 20px 29px;max-width:900px;
+}
+.hero::after {
+  content:"";position:absolute;bottom:0;left:50%;width:46px;height:3px;
+  transform:translateX(-50%);background:#31a9a0;border-radius:3px;
+}
+.eyebrow { color:#258c88;font-size:10px;letter-spacing:.17em;font-weight:600; }
+.hero h1 {
+  margin:13px 0 13px;color:#152b43;
+  font:600 clamp(34px,4.6vw,52px)/1.08 var(--app-font-sans);
+  letter-spacing:-.045em;
+}
+.hero p { max-width:680px;margin:0 auto;color:#687787;font-size:14px;line-height:1.7; }
+.record-mark { display:none; }
+.workspace-grid { grid-template-columns:minmax(300px,350px) minmax(0,1fr);gap:20px; }
+.panel {
+  background:#fff;border:1px solid #dfe6eb;border-radius:9px;
+  box-shadow:0 5px 22px rgba(27,48,68,.045);
+}
+.setup-panel { padding:21px 20px 18px; }
+.section-heading { padding-bottom:14px;border-bottom:1px solid #edf0f2;margin-bottom:15px; }
+.section-heading h2,.results-title h2 { color:#1b3047;font-size:14px; }
+.step-number { color:#8493a0;letter-spacing:.09em; }
+.field-label { color:#344b60;font-size:11px; }
+.field-hint { color:#8593a1; }
+.airline-entry { gap:8px; }
+.text-input { background:#fff;border-color:#d7e0e6;border-radius:5px;color:#20374e; }
+.text-input:focus { border-color:#249b94;box-shadow:0 0 0 3px rgba(36,155,148,.13); }
+.text-input::placeholder { color:#9ba8b3; }
+.small-button { min-height:36px;border-color:#d6e0e6;background:#f8fafb;border-radius:5px;color:#344e63; }
+.small-button:hover { background:#eef4f5;border-color:#c5d5d9; }
+.airline-chip { background:#eaf6f4;border-color:#c7e6e1;color:#176d68;border-radius:4px; }
+.airline-chip button { color:#267e79; }
+.year-option { border-color:#dce4e9;background:#fbfcfd;border-radius:5px;color:#52677a; }
+.year-option input,.metric-item input { accent-color:#1b9992; }
+.year-option.selected { border-color:#68bcb5;background:#eff9f7;color:#176f6b; }
+.search-wrap svg { color:#8798a6; }
+.category-tabs { gap:4px; }
+.category-tab { color:#687b8b;border-radius:4px;padding:6px 8px;font-size:10px; }
+.category-tab.active { border-color:#c9e3e0;background:#edf7f5;color:#197772; }
+.metric-list { border-color:#e8edf0; }
+.metric-item { color:#4a5e70;line-height:1.45; }
+.metric-item:hover { background:#f5f9fa; }
+.metric-footer { color:#7e8e9a; }
+.run-button {
+  background:#188f89;color:#fff;border-radius:5px;padding:13px;
+  box-shadow:0 3px 9px rgba(24,143,137,.16);
+}
+.run-button:hover:not(:disabled) { background:#117b76; }
+.boundary-note { background:#f2f7f8;border-color:#dce9eb;border-radius:5px;color:#607582;font-size:10px; }
+.boundary-note svg { color:#368e91; }
+.results-panel { min-height:680px; }
+.results-top { padding:18px 20px 16px;border-color:#e7edf0; }
+.results-count { border-color:#dce5e9;background:#f6f9fa;color:#728392; }
+.export-button { border-color:#d9e2e7;background:#fff;border-radius:5px;color:#52697b; }
+.export-button:hover:not(:disabled) { border-color:#a9ccc9;background:#f3faf9; }
+.results-meta { background:#f7f9fa;border-color:#e5ebee;color:#728291; }
+.summary-item strong { color:#2e495f; }
+.coverage { background:#eff8f5;border-color:#d7ebe4;color:#4e6c63; }
+.coverage svg { color:#258a72; }
+.results-table th { background:#f5f8f9;color:#778895;border-color:#e2e9ed; }
+.results-table td { color:#506273;border-color:#edf1f3; }
+.results-table tr:hover td { background:#f8fbfb; }
+.metric-cell { color:#243d55!important; }
+.airline-cell { color:#3e596c!important; }
+.amount-cell { color:#1c4352!important; }
+.status-verified { background:#e9f6ef;color:#27815d; }
+.status-unavailable { background:#f0f3f5;color:#71808a; }
+.status-needs_review { background:#fff5e2;color:#936c25; }
+.source-link { color:#16827d;text-decoration:underline;text-decoration-color:#b2d8d4;text-underline-offset:2px; }
+.source-link:hover { color:#105e5a; }
+.empty-icon { border-color:#dce8eb;background:#f0f7f7;color:#318c89; }
+.empty-inner h3 { color:#243e54; }
+.empty-inner p { color:#71808c; }
+.error-box { border-color:#e8c9c3;background:#fff5f2;border-radius:6px; }
+.retry-button { border-radius:4px; }
+.footnote { color:#82909a;border-color:#e8edef; }
+
+@media(max-width:1000px) {
+  .workspace-grid { grid-template-columns:minmax(290px,320px) minmax(0,1fr); }
+  .page { padding-inline:24px; }
+}
+@media(max-width:760px) {
+  .topbar { height:64px;padding:0 16px; }
+  .brand { gap:10px; }
+  .brand-mark img { width:140px;max-height:34px; }
+  .brand-name { font-size:11px; }
+  .brand-sub { font-size:8px;letter-spacing:.08em; }
+  .top-right { gap:0; }
+  .top-right > svg { display:none; }
+  .page { padding:31px 14px 40px; }
+  .hero { padding:4px 0 24px;margin-bottom:23px; }
+  .hero h1 { font-size:clamp(32px,8vw,43px); }
+  .hero p { font-size:13px;max-width:520px; }
+  .workspace-grid { grid-template-columns:minmax(0,1fr);gap:15px; }
+  .setup-panel { padding:18px 16px; }
+  .results-panel { min-height:490px; }
+  .results-top { flex-direction:row;align-items:center;flex-wrap:wrap;padding:15px; }
+  .results-title { flex-wrap:wrap; }
+}
+@media(max-width:420px) {
+  .brand-mark img { width:116px; }
+  .brand-name { font-size:10px; }
+  .brand-sub { font-size:7px; }
+  .topbar { padding-inline:12px; }
+  .top-right .source-indicator span:last-child { display:none; }
+  .page { padding-inline:12px; }
+  .results-title h2 { font-size:13px; }
+  .export-actions { gap:5px; }
+}
