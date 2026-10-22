@@ -231,7 +231,7 @@ export default function Home() {
             <div className="section-heading"><h2>Financial data selection</h2><span className="step-number">01 / INPUT</span></div>
 
             <label className="field-label" htmlFor="airline-input">
-              Airline <span className="field-hint">One at a time</span>
+              Airline
             </label>
             <div className="airline-entry">
               <input
@@ -240,7 +240,7 @@ export default function Home() {
                 data-testid="input-airline"
                 value={airline}
                 onChange={(event) => setAirline(event.target.value)}
-                placeholder="Type one airline name"
+                placeholder="Search for an airline"
                 aria-label="Airline"
               />
             </div>
@@ -330,7 +330,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No matching financial rows</h3><p>No workbook rows match this airline, metric, and year selection. Choose another airline or adjust the filters.</p></div>
             </div>}
             {!research.isPending && !research.isError && !result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Choose one airline at a time.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Select an airline.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
             <div className="footnote"><span>Workbook values, source notes, and reported or derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · 16</span></div>
