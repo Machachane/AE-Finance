@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Airline Financial Research"
+description = "Research source-linked financial data for up to 10 airlines, with financial-year and period metadata, and export the results to CSV or Excel."
+version = "1.0.0"
+id = "artifacts/airline-financial-research"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18348
+
+[services.development]
+run = "pnpm --filter @workspace/airline-financial-research run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/airline-financial-research", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/airline-financial-research/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18348"
+BASE_PATH = "/"
