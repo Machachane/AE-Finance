@@ -1,0 +1,1 @@
+- [Airline financial evidence](airline-financial-evidence.md) — publish only official-source values; flag incomplete metric mappings and missing disclosure instead of estimating.
