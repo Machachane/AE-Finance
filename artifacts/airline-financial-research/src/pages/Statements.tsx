@@ -31,10 +31,22 @@ const BALANCE_SHEET_METRICS = new Set([
   'Trade Receivables',
 ]);
 const PERIOD_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2', '4M', '6M', '9M', '10M', '15M', 'YR'];
+const CATEGORY_ORDER: Record<'Balance Sheet' | 'Profit & Loss', string[]> = {
+  'Balance Sheet': [
+    'Equity', 'Current/Non-Current', 'Current Assets', 'Non-Current Assets', 'Total Assets',
+    'Current Liabilities', 'Non-Current Liabilities', 'Total Liabilities', 'Total Equity',
+  ],
+  'Profit & Loss': ['Revenue', 'Total Revenue', 'Costs', 'Profit/(Loss)', 'Financial/Taxation'],
+};
 
 function formatAmount(row: WorkbookRecord) {
   if (row.amount === null) return 'Unavailable';
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amount);
+}
+
+function formatUsdAmount(row: WorkbookRecord) {
+  if (row.amountUsd === null) return 'Unavailable';
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amountUsd);
 }
 
 function statementGroup(metric: string) {
@@ -44,19 +56,19 @@ function statementGroup(metric: string) {
 function completeStatementRows(
   selection: WorkbookRecord[],
   group: 'Balance Sheet' | 'Profit & Loss',
-  allMetrics: string[],
+  metricCategories: Map<string, string>,
   airline: string,
   year: string,
   period: string,
 ) {
   const rows = selection.filter((row) => statementGroup(row.metric) === group);
   const presentMetrics = new Set(rows.map((row) => row.metric));
-  const missingRows: WorkbookRecord[] = allMetrics
-    .filter((metric) => statementGroup(metric) === group && !presentMetrics.has(metric))
-    .map((metric) => ({
+  const missingRows: WorkbookRecord[] = [...metricCategories.entries()]
+    .filter(([metric]) => statementGroup(metric) === group && !presentMetrics.has(metric))
+    .map(([metric, category]) => ({
       airline,
       metric,
-      category: '',
+      category,
       amount: null,
       amountUsd: null,
       currency: null,
@@ -97,6 +109,14 @@ function StatementTable({
     if (format === 'csv') exportStatementCsv(rows, title, airline, year, period);
     else exportStatementXlsx(rows, title, airline, year, period);
   };
+  const groupedRows = [...new Set(rows.map((row) => row.category || 'Uncategorised'))]
+    .sort((a, b) => {
+      const order = CATEGORY_ORDER[title];
+      const aIndex = order.indexOf(a);
+      const bIndex = order.indexOf(b);
+      return (aIndex < 0 ? order.length : aIndex) - (bIndex < 0 ? order.length : bIndex) || a.localeCompare(b);
+    })
+    .map((category) => ({ category, rows: rows.filter((row) => (row.category || 'Uncategorised') === category) }));
 
   return (
     <section className="panel statement-panel" aria-label={title}>
@@ -119,33 +139,34 @@ function StatementTable({
         {rows.length ? (
           <table className="statement-table">
             <thead>
-              <tr><th>Metric</th><th className="statement-amount-heading">Amount</th><th>Scope / entity</th><th>Source</th></tr>
+              <tr><th>Category</th><th>Metric</th><th className="statement-amount-heading">Total Amount (USD)</th></tr>
             </thead>
             <tbody>
-              {rows.map((row, index) => (
-                <tr key={`${row.metric}-${row.reportingEntity}-${row.sourceUrl}-${index}`}>
-                  <td>
+              {groupedRows.map(({ category, rows: categoryRows }) => categoryRows.map((row, index) => (
+                <tr key={`${category}-${row.metric}-${row.reportingEntity}-${row.sourceUrl}-${index}`}>
+                  {index === 0 && <td className="statement-category-cell" rowSpan={categoryRows.length}><span className="statement-category-icon">−</span>{category}</td>}
+                  <td className="statement-metric-cell">
                     <strong>{row.metric}</strong>
                     <span className="statement-value-meta">{row.valueBasis || 'Basis not specified'} · {row.verificationStatus === 'needs_review' ? 'Needs review' : row.verificationStatus}</span>
+                    <span className="statement-scope-meta">{row.reportingScope || 'Scope not stated'}{row.reportingEntity ? ` · ${row.reportingEntity}` : ''}</span>
+                    {row.sourceUrl
+                      ? <a className="statement-source" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceUrl}>View source ↗</a>
+                      : <span className="statement-no-source">No source link</span>}
+                    <details className="statement-row-details">
+                      <summary>Source &amp; reporting details</summary>
+                      <div>{row.status || 'Status not stated'} · {row.fiscalYearEnd || 'Fiscal year-end not stated'} · {row.date || 'Date not stated'}</div>
+                      <div>Reported amount: {row.amount === null ? 'Unavailable' : `${row.currency || ''} ${formatAmount(row)}${row.unit ? ` ${row.unit}` : ''}`}</div>
+                      {row.ifrs16Asc842Adoption && <div>Lease standard: {row.ifrs16Asc842Adoption}</div>}
+                      {row.inAdministration && <div>In administration: {row.inAdministration}</div>}
+                      {row.note && <div>{row.note}</div>}
+                    </details>
                   </td>
                   <td className="statement-amount">
-                    <strong>{formatAmount(row)}</strong>
-                    <span>{row.currency || 'Currency not stated'}{row.unit ? ` · ${row.unit}` : ''}</span>
-                    {row.amountUsd !== null && <span>USD equivalent: {new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amountUsd)}</span>}
+                    <strong>{formatUsdAmount(row)}</strong>
+                    <span>{row.amountUsd === null ? 'USD value unavailable' : `${row.unit || 'Units'} · USD`}</span>
                   </td>
-                  <td className="statement-scope">
-                    <span>{row.reportingScope || 'Scope not stated'}</span>
-                    <small>{row.reportingEntity || 'Reporting entity not stated'}</small>
-                    <small>{row.fiscalYearEnd ? `Fiscal year-end: ${row.fiscalYearEnd}` : 'Fiscal year-end not stated'}{row.date ? ` · Date: ${row.date}` : ''}{row.status ? ` · ${row.status}` : ''}</small>
-                    {row.ifrs16Asc842Adoption && <small>Lease standard: {row.ifrs16Asc842Adoption}</small>}
-                    {row.inAdministration && <small>In administration: {row.inAdministration}</small>}
-                    {row.note && <small>{row.note}</small>}
-                  </td>
-                  <td>{row.sourceUrl
-                    ? <a className="statement-source" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceUrl}>View source ↗</a>
-                    : <span className="statement-no-source">No source link</span>}</td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         ) : (
@@ -211,9 +232,12 @@ export default function FinancialStatementsPage() {
   const selection = records.filter((record) =>
     record.airline === airline && record.financialYear === year && record.reportingPeriod === period,
   );
-  const allMetrics = useMemo(() => [...new Set(records.map((record) => record.metric))], [records]);
-  const balanceSheetRows = completeStatementRows(selection, 'Balance Sheet', allMetrics, airline, year, period);
-  const profitLossRows = completeStatementRows(selection, 'Profit & Loss', allMetrics, airline, year, period);
+  const metricCategories = useMemo(
+    () => new Map(records.map((record) => [record.metric, record.category])),
+    [records],
+  );
+  const balanceSheetRows = completeStatementRows(selection, 'Balance Sheet', metricCategories, airline, year, period);
+  const profitLossRows = completeStatementRows(selection, 'Profit & Loss', metricCategories, airline, year, period);
   const noSelection = !loading && !error && Boolean(airline && year && period && selection.length === 0);
 
   return (
