@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import AirlineResearchPage from '@/pages/Home';
 import FinancialStatementsPage from '@/pages/Statements';
+import FinancialRatiosPage from '@/pages/FinancialRatios';
 import {
   Route,
   Switch,
@@ -20,6 +21,7 @@ function Router() {
       <Switch>
         <Route path="/" component={AirlineResearchPage} />
         <Route path="/statements" component={FinancialStatementsPage} />
+        <Route path="/ratios" component={FinancialRatiosPage} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>
