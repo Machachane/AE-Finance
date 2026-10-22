@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, CircleHelp, FileSpreadsheet,
+  AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, FileSpreadsheet,
   FileText, Info, LoaderCircle, Plus, Search, ShieldCheck, X,
 } from 'lucide-react';
 import { useResearchAirlines } from '@workspace/api-client-react';
 import type { AirlineFinancialRow, AirlineResearchInput } from '@workspace/api-client-react';
+import SiteHeader from '@/components/SiteHeader';
 
 type FinancialResultRow = AirlineFinancialRow & {
   metricId?: number | null;
@@ -349,16 +350,7 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="/" aria-label="Airline Financial Research home">
-          <span className="brand-mark"><img src="/images/airline-economics-logo.png" alt="Airline Economics" /></span>
-          <span><span className="brand-name">Airline Financial Research</span><span className="brand-sub">Evidence workspace</span></span>
-        </a>
-        <div className="top-right">
-          <div className="source-indicator"><span className="source-dot" /><span>{sourceMode === 'workbook' ? 'Uploaded workbook · source-linked' : 'Live SEC EDGAR filings'}</span></div>
-          <CircleHelp size={16} aria-label="Help" />
-        </div>
-      </header>
+      <SiteHeader activePage="research" status={sourceMode === 'workbook' ? 'Uploaded workbook · source-linked' : 'Live SEC EDGAR filings'} />
 
       <main className="page">
         <div className="hero">
