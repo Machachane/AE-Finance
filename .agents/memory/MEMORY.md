@@ -1,2 +1,2 @@
 - [Airline financial evidence](airline-financial-evidence.md) — publish only official-source values; flag incomplete metric mappings and missing disclosure instead of estimating.
-- [Airline Economics brand direction](airline-economics-brand.md) — use the supplied logo and navy/teal, white-page reference when updating this app’s visuals.
+- [Airline Economics brand direction](airline-economics-brand.md) — use the supplied logo with navy and light-blue UI accents on a bright page.
