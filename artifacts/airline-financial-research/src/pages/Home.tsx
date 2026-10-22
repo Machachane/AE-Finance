@@ -135,7 +135,7 @@ function exportCsv(rows: FinancialResultRow[]) {
     return `"${text.replace(/"/g, '""')}"`;
   };
   const content = [EXPORT_COLUMNS.map(({ header }) => header), ...rows.map(rowValues)].map((line) => line.map(csvCell).join(',')).join('\r\n');
-  downloadBlob(new Blob(['\ufeff', content], { type: 'text/csv;charset=utf-8' }), 'airline-financial-research.csv');
+  downloadBlob(new Blob(['\ufeff', content], { type: 'text/csv;charset=utf-8' }), 'airline-financials.csv');
 }
 
 function crc32(bytes: Uint8Array) {
@@ -210,12 +210,12 @@ function exportXlsx(rows: FinancialResultRow[]) {
   const files = [
     { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
     { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
-    { name: 'xl/workbook.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Airline research" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+    { name: 'xl/workbook.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Airline financials" sheetId="1" r:id="rId1"/></sheets></workbook>' },
     { name: 'xl/_rels/workbook.xml.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
     { name: 'xl/worksheets/sheet1.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData>${sheetRows}</sheetData>${hyperlinkMarkup}</worksheet>` },
     ...(hyperlinkRelationships ? [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', content: hyperlinkRelationships }] : []),
   ];
-  downloadBlob(makeZip(files), 'airline-financial-research.xlsx');
+  downloadBlob(makeZip(files), 'airline-financials.xlsx');
 }
 
 function formatAmount(row: FinancialResultRow) {
@@ -336,7 +336,7 @@ export default function Home() {
       <main className="page">
         <div className="hero">
           <div>
-            <div className="eyebrow">Airline financial research</div>
+            <div className="eyebrow">Airline financials</div>
             <h1>Comparable financials.<br />A clear source trail.</h1>
             <p>Search the supplied 2025–26 airline workbook. Imported figures retain their source links and are clearly marked for review.</p>
           </div>
@@ -344,8 +344,8 @@ export default function Home() {
         </div>
 
         <div className="workspace-grid">
-          <section className="panel setup-panel" aria-label="Research parameters">
-            <div className="section-heading"><h2>Research parameters</h2><span className="step-number">01 / INPUT</span></div>
+          <section className="panel setup-panel" aria-label="Financial data selection">
+            <div className="section-heading"><h2>Financial data selection</h2><span className="step-number">01 / INPUT</span></div>
 
             <label className="field-label" htmlFor="airline-input">
               Airline <span className="field-hint">One at a time</span>
@@ -395,14 +395,14 @@ export default function Home() {
               <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
             <button className="run-button" type="button" onClick={runResearch} disabled={!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
-              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Run research <ArrowDownToLine size={15} /></>}
+              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Show financials <ArrowDownToLine size={15} /></>}
             </button>
             <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
           </section>
 
-          <section className="panel results-panel" aria-label="Research results">
+          <section className="panel results-panel" aria-label="Financial results">
             <div className="results-top">
-              <div className="results-title"><h2>Research results</h2><span className="results-count" data-testid="text-result-count">{rows.length} rows</span></div>
+              <div className="results-title"><h2>Financial results</h2><span className="results-count" data-testid="text-result-count">{rows.length} rows</span></div>
               <div className="export-actions">
                 <button type="button" className="export-button" disabled={!rows.length} onClick={() => exportCsv(rows)} data-testid="button-export-csv"><FileText size={13} /> CSV</button>
                 <button type="button" className="export-button" disabled={!rows.length} onClick={() => exportXlsx(rows)} data-testid="button-export-xlsx"><FileSpreadsheet size={13} /> Excel</button>
@@ -414,7 +414,7 @@ export default function Home() {
                 <span className="summary-item">NEEDS REVIEW <strong>{reviewCount}</strong></span>
                 <span className="summary-item">UNAVAILABLE <strong>{unavailableCount}</strong></span>
               </div>
-              <span>{result ? `Generated ${new Date(result.generatedAt).toLocaleString()}` : 'No research run yet'}</span>
+              <span>{result ? `Generated ${new Date(result.generatedAt).toLocaleString()}` : 'No results yet'}</span>
             </div>
 
             {workbookError && <div className="error-box" role="alert" data-testid="status-workbook-error">
@@ -442,10 +442,10 @@ export default function Home() {
             </div>}
 
             {result && rows.length === 0 && <div className="empty-state" data-testid="status-empty-results">
-              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No comparable rows returned</h3><p>No rows matched those exact airline names, metrics, and years. Choose a name from the suggestions or try another selection.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><Search size={21} /></div><h3>No matching financial rows</h3><p>No workbook rows matched this airline, metric, and year selection. Choose another airline or adjust the filters.</p></div>
             </div>}
             {!result && <div className="empty-state">
-              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Choose one airline at a time.</h3><p>Select an airline, choose metrics and years, then run research. Workbook rows are source-linked and marked for review.</p></div>
+              <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Choose one airline at a time.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
             <div className="footnote"><span>Workbook values, source notes, and reported/derived basis are preserved as supplied.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
