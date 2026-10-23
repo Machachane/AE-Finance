@@ -6,6 +6,7 @@ import NotFound from '@/pages/not-found';
 import AirlineResearchPage from '@/pages/Home';
 import FinancialStatementsPage from '@/pages/Statements';
 import FinancialRatiosPage from '@/pages/FinancialRatios';
+import AirlineAnalyticsPage from '@/pages/AirlineAnalytics';
 import {
   Route,
   Switch,
@@ -22,6 +23,7 @@ function Router() {
         <Route path="/" component={AirlineResearchPage} />
         <Route path="/statements" component={FinancialStatementsPage} />
         <Route path="/ratios" component={FinancialRatiosPage} />
+        <Route path="/analytics" component={AirlineAnalyticsPage} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>

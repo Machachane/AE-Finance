@@ -2,7 +2,7 @@ import { Link } from 'wouter';
 import { CircleHelp } from 'lucide-react';
 
 type SiteHeaderProps = {
-  activePage: 'research' | 'statements' | 'ratios';
+  activePage: 'research' | 'statements' | 'ratios' | 'analytics';
   status?: string;
 };
 
@@ -27,6 +27,9 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
         </Link>
         <Link href="/ratios" className={`main-menu-link ${activePage === 'ratios' ? 'active' : ''}`} aria-current={activePage === 'ratios' ? 'page' : undefined}>
           Financial Ratios &amp; KPIs
+        </Link>
+        <Link href="/analytics" className={`main-menu-link ${activePage === 'analytics' ? 'active' : ''}`} aria-current={activePage === 'analytics' ? 'page' : undefined} data-testid="link-airline-analytics">
+          Airline Analytics
         </Link>
       </nav>
       <div className="top-right">
