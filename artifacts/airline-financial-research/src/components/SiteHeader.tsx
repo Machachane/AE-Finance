@@ -13,6 +13,7 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
         <span className="brand-mark">
           <img src={`${import.meta.env.BASE_URL}images/airline-economics-logo.png`} alt="Airline Economics" />
         </span>
+        <span className="brand-context">Finance</span>
       </a>
       <nav className="main-menu" aria-label="Main menu">
         <Link href="/" className={`main-menu-link ${activePage === 'research' ? 'active' : ''}`} aria-current={activePage === 'research' ? 'page' : undefined}>

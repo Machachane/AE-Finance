@@ -286,6 +286,10 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   background:transparent;border-radius:0;color:inherit;
 }
 .brand-mark img { display:block;width:188px;height:auto;max-height:42px;object-fit:contain;mix-blend-mode:screen; }
+.brand-context {
+  padding-left:14px;border-left:1px solid rgba(208,222,231,.42);
+  color:#f3f6f8;font-size:14px;font-weight:650;letter-spacing:.01em;white-space:nowrap;
+}
 .brand-name { display:block;font-size:13px;font-weight:650;letter-spacing:.005em;color:#f3f6f8; }
 .brand-sub { display:block;margin-top:4px;color:#aebdca;font-size:9px;letter-spacing:.12em; }
 .top-right { color:#c4d0d9;gap:14px; }
@@ -917,5 +921,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 }
 @media(max-width:420px) {
   .topbar { min-height:98px;grid-template-rows:32px 32px;padding:8px 12px 7px; }
+  .brand { gap:9px; }
+  .brand-context { padding-left:8px;font-size:10px; }
   .main-menu-link { padding:0 2px;font-size:8px; }
 }
