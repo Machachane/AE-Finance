@@ -7,6 +7,7 @@ import AirlineResearchPage from '@/pages/Home';
 import FinancialStatementsPage from '@/pages/Statements';
 import FinancialRatiosPage from '@/pages/FinancialRatios';
 import AirlineAnalyticsPage from '@/pages/AirlineAnalytics';
+import AviationFinancePage from '@/pages/AviationFinance';
 import {
   Route,
   Switch,
@@ -24,6 +25,7 @@ function Router() {
         <Route path="/statements" component={FinancialStatementsPage} />
         <Route path="/ratios" component={FinancialRatiosPage} />
         <Route path="/analytics" component={AirlineAnalyticsPage} />
+        <Route path="/aviation-finance" component={AviationFinancePage} />
         <Route component={NotFound} />
       </Switch>
     </RoutedErrorBoundary>

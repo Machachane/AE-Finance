@@ -422,6 +422,113 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .statement-downloads .export-button { padding:7px 6px;font-size:9px; }
 }
 
+/* Aviation finance leaderboards — compact, source-transparent research desk */
+.aviation-finance-page { max-width:1560px; padding-top:37px; }
+.af-heading { display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin:0 0 25px; }
+.af-heading-copy .eyebrow { color:#218c89; }
+.af-heading h1 { margin:9px 0 9px;color:#152b43;font-size:clamp(34px,4vw,45px);line-height:1.08;letter-spacing:-.046em;font-weight:650; }
+.af-heading h1 span { color:#168c87;font-weight:450; }
+.af-heading p { margin:0;color:#687787;font-size:13px;line-height:1.65; }
+.af-heading-stamp { min-width:190px;padding:10px 14px 10px 16px;border-left:2px solid #2aa39d;background:#edf5f5;display:flex;flex-direction:column;gap:4px; }
+.af-heading-stamp span,.af-kicker { color:#218c89;font:9px var(--app-font-mono);letter-spacing:.13em; }
+.af-heading-stamp strong { color:#203b53;font-size:14px; }
+.af-heading-stamp i { color:#82929a;font-size:10px;font-style:normal; }
+.af-finance-layout { display:grid;grid-template-columns:minmax(205px,250px) minmax(0,1fr);align-items:start;gap:14px; }
+.af-controls { position:sticky;top:90px;display:flex;flex-direction:column;gap:17px;padding:17px; }
+.af-filter-intro { display:flex;align-items:center;gap:11px; }
+.af-filter-icon { width:34px;height:34px;display:grid;place-items:center;border:1px solid #d8e7e8;border-radius:5px;background:#f0f7f7;color:#218c89; }
+.af-filter-intro > div:last-child { display:flex;flex-direction:column;gap:4px; }
+.af-filter-intro strong { color:#203b53;font-size:12px; }
+.af-filter-intro span { color:#81909b;font-size:10px; }
+.af-filter-fields { display:grid;grid-template-columns:1fr;gap:13px; }
+.af-filter-fields .statement-field { gap:5px; }
+.af-filter-fields .statement-field select { height:37px; }
+.af-period-meta { display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid #e7edf0;color:#758795;font:9px var(--app-font-mono); }
+.af-live-dot { width:7px;height:7px;border-radius:50%;background:#3aa797;box-shadow:0 0 0 3px #e7f4f1; }
+.af-disclosure { display:flex;align-items:flex-start;gap:10px;margin:0 0 18px;padding:10px 13px;border:1px solid #dce9eb;border-radius:5px;background:#f2f7f8;color:#607582;font-size:10px;line-height:1.55; }
+.af-disclosure svg { flex:0 0 auto;margin-top:1px;color:#368e91; }
+.af-disclosure p { margin:0; }
+.af-disclosure strong { color:#435f69;font-weight:700; }
+.af-rankings-column { min-width:0; }
+.af-board-stack { display:flex;flex-direction:column;gap:14px; }
+.af-board { min-width:0;overflow:hidden;animation:af-enter .32s ease both; }
+.af-board:nth-child(2) { animation-delay:.04s; }.af-board:nth-child(3) { animation-delay:.08s; }.af-board:nth-child(4) { animation-delay:.12s; }
+@keyframes af-enter { from { opacity:0;transform:translateY(5px); } to { opacity:1;transform:translateY(0); } }
+.af-board-head { min-height:68px;padding:14px 17px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #e7edf0; }
+.af-board-head h2 { margin:4px 0 0;color:#1b3047;font-size:15px;letter-spacing:-.02em; }
+.af-limit { padding:4px 6px;border:1px solid #dce5e9;border-radius:3px;background:#f6f9fa;color:#728392;font:9px var(--app-font-mono);letter-spacing:.05em; }
+.af-table-wrap { overflow-x:auto; }
+.af-table { width:100%;min-width:610px;border-collapse:collapse;text-align:left; }
+.af-table th,.af-table td { padding:10px 13px;border-bottom:1px solid #edf1f3; }
+.af-table thead th { background:#f6f8f9;color:#7c8b97;font:9px var(--app-font-mono);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap; }
+.af-table thead th:first-child { width:136px; }
+.af-table tbody tr:last-child th,.af-table tbody tr:last-child td { border-bottom:0; }
+.af-table tbody tr:hover { background:#f8fbfb; }
+.af-table tbody th { color:#3e596c;font-size:11px;font-weight:650;line-height:1.35; }
+.af-bar-heading { min-width:245px; }
+.af-bar-cell { min-width:245px; }
+.af-bar-row { display:flex;align-items:center;gap:9px; }
+.af-bar-track { position:relative;flex:1;height:17px;overflow:hidden;border-radius:2px;background:#f0f4f5; }
+.af-bar-fill { display:block;height:100%;min-width:2px;border-radius:2px;transition:width .32s ease; }
+.af-bar-fill-mlas { background:#e97944; }
+.af-bar-fill-borrowers { background:#2774ce; }
+.af-bar-fill-capital { background:#25bd8c; }
+.af-bar-fill-commercial { background:#248bc4; }
+.af-amount { min-width:66px;text-align:right;white-space:nowrap;color:#1c4352;font:11px var(--app-font-mono);font-weight:600; }
+.af-deals-heading,.af-deals { width:64px;text-align:right;white-space:nowrap; }
+.af-deals { color:#738592;font:10px var(--app-font-mono); }
+.af-deals-short { display:none; }
+.af-period-heading,.af-period-value { width:83px;text-align:right;white-space:nowrap; }
+.af-period-value { color:#526a79;font:10px var(--app-font-mono); }
+.af-empty { min-height:172px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center;color:#77909a; }
+.af-empty svg { color:#318c89; }
+.af-empty strong { color:#375269;font-size:12px; }
+.af-empty span { color:#83919b;font-size:10px; }
+.af-loading { display:grid;grid-template-columns:1fr;gap:14px; }
+.af-skeleton { min-height:294px;padding:17px;overflow:hidden; }
+.af-skeleton i { display:block;height:25px;margin:11px 0;border-radius:3px;background:linear-gradient(90deg,#f0f3f4,#f8f9fa,#f0f3f4);background-size:200% 100%;animation:af-shimmer 1.25s ease-in-out infinite; }
+.af-skeleton i:first-child { height:34px;margin-top:0; }
+@keyframes af-shimmer { to { background-position:-200% 0; } }
+.af-error { max-width:900px;margin:24px auto; }
+.af-source-footer { display:flex;justify-content:space-between;gap:14px;margin-top:16px;padding:12px 2px;color:#81909b;font-size:9px; }
+.af-source-footer > span:first-child { display:flex;align-items:center;gap:7px; }
+.af-source-footer i { width:6px;height:6px;border-radius:50%;background:#42a69b; }
+.af-source-footer > span:last-child { font-family:var(--app-font-mono);text-align:right; }
+.af-source-footer b { color:#b4bec4;font-weight:400;padding:0 3px; }
+@media(max-width:900px) {
+  .af-finance-layout { grid-template-columns:1fr; }
+  .af-controls { position:static;display:grid;grid-template-columns:minmax(190px,1fr) minmax(280px,430px) auto;align-items:center;gap:14px;margin-bottom:14px; }
+  .af-filter-fields { grid-template-columns:1fr 1.25fr;gap:11px; }
+  .af-period-meta { padding:0;border-top:0;white-space:nowrap; }
+}
+@media(max-width:760px) {
+  .aviation-finance-page { padding-top:28px; }
+  .af-heading { align-items:flex-start;flex-direction:column;gap:15px;margin-bottom:20px; }
+  .af-heading-stamp { min-width:0;width:100%; }
+  .af-controls { display:flex;gap:13px;padding:15px; }
+  .af-filter-fields { grid-template-columns:1fr; }
+  .af-period-meta { white-space:normal; }
+  .af-loading { gap:12px; }
+  .af-board-head { padding:13px 14px; }
+  .af-table th,.af-table td { padding:9px 10px; }
+  .af-source-footer { flex-direction:column; }
+  .af-source-footer > span:last-child { text-align:left;overflow-wrap:anywhere; }
+}
+@media(max-width:420px) {
+  .af-filter-fields { grid-template-columns:1fr; }
+  .af-table { min-width:0;table-layout:fixed; }
+  .af-table thead th:first-child { width:88px; }
+  .af-bar-heading,.af-bar-cell { min-width:0; }
+  .af-bar-row { gap:5px; }
+  .af-bar-track { min-width:24px; }
+  .af-amount { min-width:54px;font-size:9px; }
+  .af-table tbody th { max-width:145px;overflow-wrap:anywhere; }
+  .af-table-detailed .af-deals-heading,.af-table-detailed .af-deals { width:50px; }
+  .af-deals-full { display:none; }
+  .af-deals-short { display:inline; }
+  .af-table-detailed .af-period-heading,.af-table-detailed .af-period-value { display:none; }
+}
+
 /* Airline analytics — source-linked financial dashboard */
 .airline-analytics-page { max-width:1560px;padding-top:37px; }
 .analytics-heading {
@@ -799,7 +906,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   }
   .brand { grid-column:1;grid-row:1;min-width:0; }
   .main-menu {
-    grid-column:1 / -1;grid-row:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+    grid-column:1 / -1;grid-row:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
     width:100%;height:34px;gap:3px;margin:0;
   }
   .main-menu-link {
