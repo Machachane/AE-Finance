@@ -1,7 +1,7 @@
 export type FinancialRatioRecord = {
   airline: string;
   metric: string;
-  amount: number | null;
+  amountUsd: number | null;
   currency: string | null;
   unit: string | null;
   financialYear: string;
@@ -16,6 +16,8 @@ export type FinancialRatioRecord = {
   reportingEntity: string | null;
   sourceUrl: string | null;
   note: string | null;
+  fxRate?: number | null;
+  fxBasis?: string | null;
 };
 
 export type RatioFormat = 'percent' | 'multiple';
@@ -43,6 +45,7 @@ export type RatioSnapshot = {
   reportingPeriod: string;
   date: string | null;
   currency: string | null;
+  sourceCurrency: string | null;
   unit: string | null;
   fiscalYearEnd: string | null;
   reportingScope: string | null;
@@ -119,7 +122,7 @@ export function getReportingBases(records: FinancialRatioRecord[], airline: stri
         label: [
           record.reportingScope || 'Scope not stated',
           record.reportingEntity || 'Entity not stated',
-          record.currency || 'Currency not stated',
+          record.currency ? `Source currency ${record.currency}` : 'Source currency not stated',
           record.unit || '',
         ].filter(Boolean).join(' · '),
       };
@@ -195,7 +198,7 @@ function createSnapshot(
   const first = rows[0];
   const byMetric = (metric: string) => metrics.get(metric);
   const amount = (metric: string) => {
-    const value = byMetric(metric)?.amount;
+    const value = byMetric(metric)?.amountUsd;
     return typeof value === 'number' && Number.isFinite(value) ? value : null;
   };
 
@@ -210,7 +213,7 @@ function createSnapshot(
     const inputs = uniqueRows(required.map(byMetric));
     const missing = required.filter((metric) => amount(metric) === null);
     if (missing.length) {
-      return result(definition, null, inputs, `Unavailable: missing ${missing.join(', ')} in this reporting basis.`);
+      return result(definition, null, inputs, `Unavailable: missing USD-converted values for ${missing.join(', ')} in this reporting basis.`);
     }
     const values = Object.fromEntries(required.map((metric) => [metric, amount(metric)!]));
     const value = calculate(values);
@@ -227,19 +230,23 @@ function createSnapshot(
     const closingRow = byMetric(balanceMetric);
     const openingRow = getOpeningBalance(allRecords, basisKey, balanceMetric, first.date);
     const inputs = uniqueRows([profitRow, openingRow, closingRow]);
-    if (!profitRow || profitRow.amount === null || !closingRow || closingRow.amount === null || !openingRow || openingRow.amount === null) {
+    if (
+      !profitRow || typeof profitRow.amountUsd !== 'number' || !Number.isFinite(profitRow.amountUsd) ||
+      !closingRow || typeof closingRow.amountUsd !== 'number' || !Number.isFinite(closingRow.amountUsd) ||
+      !openingRow || typeof openingRow.amountUsd !== 'number' || !Number.isFinite(openingRow.amountUsd)
+    ) {
       return result(
         definition,
         null,
         inputs,
-        `Unavailable: ${balanceMetric} at the prior fiscal year-end and the current reporting date, plus Profit / Loss After Tax, are required.`,
+        `Unavailable: USD-converted ${balanceMetric} at the prior fiscal year-end and current reporting date, plus USD-converted Profit / Loss After Tax, are required.`,
       );
     }
-    const average = (openingRow.amount + closingRow.amount) / 2;
+    const average = (openingRow.amountUsd + closingRow.amountUsd) / 2;
     if (average <= 0) return result(definition, null, inputs, `Unavailable: average ${balanceMetric.toLowerCase()} is not positive.`);
     return result(
       definition,
-      (profitRow.amount / average) * 100,
+      (profitRow.amountUsd / average) * 100,
       inputs,
       'Period return; not annualised. Uses the prior fiscal year-end and current period-end balance.',
     );
@@ -288,7 +295,8 @@ function createSnapshot(
     financialYear: first.financialYear,
     reportingPeriod: first.reportingPeriod,
     date: first.date,
-    currency: first.currency,
+    currency: 'USD',
+    sourceCurrency: first.currency,
     unit: first.unit,
     fiscalYearEnd: first.fiscalYearEnd,
     reportingScope: first.reportingScope,

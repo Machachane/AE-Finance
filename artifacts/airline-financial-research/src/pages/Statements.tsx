@@ -7,6 +7,10 @@ type WorkbookRecord = StatementExportRow & {
   category: string;
 };
 
+type SourceWorkbookRecord = Omit<WorkbookRecord, 'currency' | 'sourceCurrency'> & {
+  currency: string | null;
+};
+
 const WORKBOOK_ROW_COUNT = 6358;
 const BALANCE_SHEET_METRICS = new Set([
   'Cash & Liquid Investments',
@@ -39,11 +43,6 @@ const CATEGORY_ORDER: Record<'Balance Sheet' | 'Profit & Loss', string[]> = {
   'Profit & Loss': ['Revenue', 'Total Revenue', 'Costs', 'Profit/(Loss)', 'Financial/Taxation'],
 };
 
-function formatAmount(row: WorkbookRecord) {
-  if (row.amount === null) return 'Unavailable';
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amount);
-}
-
 function formatUsdAmount(row: WorkbookRecord) {
   if (row.amountUsd === null) return 'Unavailable';
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amountUsd);
@@ -69,9 +68,11 @@ function completeStatementRows(
       airline,
       metric,
       category,
-      amount: null,
       amountUsd: null,
-      currency: null,
+      currency: 'USD',
+      sourceCurrency: null,
+      fxRate: null,
+      fxBasis: null,
       unit: null,
       financialYear: year,
       reportingPeriod: period,
@@ -155,7 +156,11 @@ function StatementTable({
                     <details className="statement-row-details">
                       <summary>Source &amp; reporting details</summary>
                       <div>{row.status || 'Status not stated'} · {row.fiscalYearEnd || 'Fiscal year-end not stated'} · {row.date || 'Date not stated'}</div>
-                      <div>Reported amount: {row.amount === null ? 'Unavailable' : `${row.currency || ''} ${formatAmount(row)}${row.unit ? ` ${row.unit}` : ''}`}</div>
+                      <div>Amount (USD): {row.amountUsd === null ? 'Unavailable' : `USD ${formatUsdAmount(row)}${row.unit ? ` ${row.unit}` : ''}`}</div>
+                      <div>Currency: {row.currency || 'Not stated'}</div>
+                      <div>Source currency: {row.sourceCurrency || 'Not stated'}</div>
+                      {row.fxRate !== null && <div>FX rate (source units per USD): {row.fxRate}</div>}
+                      {row.fxBasis && <div>FX basis: {row.fxBasis}</div>}
                       {row.ifrs16Asc842Adoption && <div>Lease standard: {row.ifrs16Asc842Adoption}</div>}
                       {row.inAdministration && <div>In administration: {row.inAdministration}</div>}
                       {row.note && <div>{row.note}</div>}
@@ -194,12 +199,17 @@ export default function FinancialStatementsPage() {
     fetch(`${import.meta.env.BASE_URL}data/airline-financials.json`)
       .then((response) => {
         if (!response.ok) throw new Error(`Workbook data could not be loaded (${response.status}).`);
-        return response.json() as Promise<WorkbookRecord[]>;
+        return response.json() as Promise<SourceWorkbookRecord[]>;
       })
       .then((data) => {
         if (!active) return;
         if (!Array.isArray(data) || data.length !== WORKBOOK_ROW_COUNT) throw new Error('Workbook data failed its row-count check.');
-        setRecords(data.map((record) => ({ ...record, verificationStatus: 'needs_review' })));
+        setRecords(data.map((record) => ({
+          ...record,
+          currency: 'USD',
+          sourceCurrency: record.currency,
+          verificationStatus: 'needs_review',
+        })));
         setAirline(data[0]?.airline ?? '');
         setLoading(false);
       })
@@ -291,7 +301,7 @@ export default function FinancialStatementsPage() {
                 <StatementTable title="Profit & Loss" rows={profitLossRows} airline={airline} year={year} period={period} emptyText="No Profit & Loss line items are available for this selection." />
               </div>
             )}
-            <div className="statements-footnote">Each statement can be downloaded separately as CSV or Excel. Downloads keep amount, currency, unit, reporting scope, source note, and clickable source link.</div>
+            <div className="statements-footnote">Each statement can be downloaded separately as CSV or Excel. Amounts and CURRENCY use USD; SOURCE CURRENCY, FX rate, FX basis, reporting scope, source note, and clickable source link are retained.</div>
           </div>
         )}
       </main>

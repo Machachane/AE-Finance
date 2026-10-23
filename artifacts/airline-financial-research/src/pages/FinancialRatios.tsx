@@ -53,17 +53,17 @@ function valueTone(tone: IndicatorTone) {
 }
 
 function sourceAmount(record: FinancialRatioRecord) {
-  if (record.amount === null || !Number.isFinite(record.amount)) return 'Unavailable';
-  const amount = new Intl.NumberFormat('en', { maximumFractionDigits: 3 }).format(record.amount);
-  return [record.currency, amount, record.unit].filter(Boolean).join(' ');
+  if (record.amountUsd === null || !Number.isFinite(record.amountUsd)) return 'Unavailable';
+  const amount = new Intl.NumberFormat('en', { maximumFractionDigits: 3 }).format(record.amountUsd);
+  return ['USD', amount, record.unit].filter(Boolean).join(' ');
 }
 
 function downloadHistory(history: RatioSnapshot[], airline: string) {
   const headers = [
     'Airline', 'Financial year', 'Reporting period', 'Fiscal year-end', 'Period end', 'Reporting scope',
-    'Reporting entity', 'Currency', 'Unit', 'Status', 'IFRS16/ASC842 Adoption',
+    'Reporting entity', 'Calculation currency', 'Source currency', 'Unit', 'Status', 'IFRS16/ASC842 Adoption',
     'In Administration', 'Ratio', 'Category', 'Value', 'Format',
-    'Indicator', 'Formula', 'Calculation note', 'Input metrics', 'Source URLs',
+    'Indicator', 'Formula', 'Calculation note', 'Input metrics', 'Input values (USD)', 'Input FX rates (units per USD)', 'Input FX bases', 'Source URLs',
   ];
   const cell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
   const rows = history.flatMap((snapshot) => snapshot.ratios.map((ratio) => [
@@ -75,6 +75,7 @@ function downloadHistory(history: RatioSnapshot[], airline: string) {
     snapshot.reportingScope,
     snapshot.reportingEntity,
     snapshot.currency,
+    snapshot.sourceCurrency,
     snapshot.unit,
     snapshot.status,
     snapshot.ifrs16Asc842Adoption,
@@ -87,6 +88,9 @@ function downloadHistory(history: RatioSnapshot[], airline: string) {
     ratio.formula,
     ratio.note,
     ratio.inputs.map((input) => input.metric).join('; '),
+    ratio.inputs.map((input) => `${input.metric}: ${input.amountUsd === null || !Number.isFinite(input.amountUsd) ? 'Unavailable' : `USD ${input.amountUsd}${input.unit ? ` ${input.unit}` : ''}`}`).join('; '),
+    ratio.inputs.map((input) => input.fxRate == null ? '' : `${input.metric}: ${input.fxRate}`).filter(Boolean).join('; '),
+    ratio.inputs.map((input) => input.fxBasis).filter(Boolean).join('; '),
     ratio.inputs.map((input) => input.sourceUrl).filter(Boolean).join('; '),
   ]));
   const csv = [headers, ...rows].map((row) => row.map(cell).join(',')).join('\r\n');
@@ -132,6 +136,7 @@ function SourceDetails({ result }: { result: RatioResult }) {
                 <div className="ratio-input-main">
                   <strong>{input.metric}</strong>
                   <span>{sourceAmount(input)} <i>·</i> FY {input.financialYear} {input.reportingPeriod} <i>·</i> {input.date || 'Date not stated'}</span>
+                  <span>Source currency: {input.currency || 'Not stated'}{input.fxRate != null ? ` · FX rate: ${input.fxRate} source units per USD` : ''}{input.fxBasis ? ` · FX basis: ${input.fxBasis}` : ''}</span>
                   {(input.reportingScope || input.reportingEntity) && (
                     <span>{input.reportingScope || 'Scope not stated'}{input.reportingEntity ? ` · ${input.reportingEntity}` : ''}</span>
                   )}
@@ -403,7 +408,7 @@ export default function FinancialRatiosPage() {
                   </div>
                   <div className="ratio-table-subhead">
                     <span>Each result uses exact-match inputs from the selected reporting basis.</span>
-                    <span>{latest.currency || 'Currency not stated'} {latest.unit || ''} · FY-end {latest.fiscalYearEnd || 'not stated'}</span>
+                    <span>Currency: USD · source currency {latest.sourceCurrency || 'not stated'} · {latest.unit || 'unit not stated'} · FY-end {latest.fiscalYearEnd || 'not stated'}</span>
                   </div>
                   <div className="ratio-results-groups">
                     {groupedRatios.map((group) => (
@@ -429,7 +434,7 @@ export default function FinancialRatiosPage() {
                   </div>
                   <div className="ratio-footnote">
                     <Info size={15} />
-                    <p>Values are derived from the supplied workbook and are not independently verified. Missing reported inputs remain unavailable, never zero. Returns use average balances and are not annualised; interim-period EBITDA multiples are also not annualised. Review each calculation’s input rows, source links and notes before relying on a result.</p>
+                    <p>Values are derived from the supplied workbook’s converted AMOUNT (USD) inputs and are not independently verified. Missing USD-converted inputs remain unavailable, never zero. FX conversion bases can vary by source row; review each calculation’s input values, FX basis, source links and notes before relying on a result. Returns use average balances and are not annualised; interim-period EBITDA multiples are also not annualised.</p>
                   </div>
                 </section>
               </>

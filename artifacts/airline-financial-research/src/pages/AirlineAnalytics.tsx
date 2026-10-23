@@ -69,7 +69,7 @@ const PERIOD_LABELS: Record<string, string> = {
   H1: 'Half year 1', H2: 'Half year 2', YR: 'Full year',
 };
 
-function formatAmount(value: number | null | undefined, currency = '') {
+function formatAmount(value: number | null | undefined, currency = 'USD') {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 'Unavailable';
   const number = new Intl.NumberFormat('en', { maximumFractionDigits: 2 }).format(value);
   return [currency, number].filter(Boolean).join(' ');
@@ -125,8 +125,8 @@ function exactMetric(snapshot: PeriodSnapshot, metric: string): AnalyticsRecord 
 }
 
 function usableAmount(record: AnalyticsRecord | null) {
-  return record && typeof record.amount === 'number' && Number.isFinite(record.amount)
-    ? record.amount
+  return record && typeof record.amountUsd === 'number' && Number.isFinite(record.amountUsd)
+    ? record.amountUsd
     : null;
 }
 
@@ -165,7 +165,8 @@ function TraceRows({
               <div>
                 <strong>{label}</strong>
                 <span>FY {snapshot.financialYear} · {snapshot.reportingPeriod} · {snapshot.date || 'Date not stated'}</span>
-                <span>{matches.length === 1 ? formatAmount(amount, record?.currency ?? '') : matches.length ? 'Ambiguous duplicate source rows' : 'No matching source row'}{matches.length === 1 && record?.unit ? ` ${record.unit}` : ''}</span>
+                <span>{matches.length === 1 ? formatAmount(amount) : matches.length ? 'Ambiguous duplicate source rows' : 'No matching source row'}{matches.length === 1 && record?.unit ? ` ${record.unit}` : ''}</span>
+                {record?.currency && <span>Source currency: {record.currency}{record.fxBasis ? ` · ${record.fxBasis}` : ''}</span>}
               </div>
               <SourceLink record={record} />
             </div>
@@ -314,7 +315,7 @@ export default function AirlineAnalyticsPage() {
 
   const basis = bases.find((candidate) => candidate.key === basisKey);
   const firstBasisRow = basisRows[0];
-  const currency = firstBasisRow?.currency ?? '';
+  const currency = 'USD';
   const unit = firstBasisRow?.unit ?? '';
   const latest = snapshots.at(-1);
 
@@ -395,7 +396,7 @@ export default function AirlineAnalyticsPage() {
           <div className="analytics-heading-note">
             <span>WORKBOOK VIEW</span>
             <strong>Matched reporting basis</strong>
-            <i>Reported amounts · no currency blending</i>
+            <i>Converted USD amounts · source basis retained</i>
           </div>
         </section>
 
@@ -483,7 +484,7 @@ export default function AirlineAnalyticsPage() {
                     <span className="analytics-panel-unit">{currency || 'Currency not stated'} · {unit || 'Unit not stated'}</span>
                   </div>
                   <div className="analytics-panel-caption">
-                    <span>Reported values · {period} periods only</span>
+                    <span>USD-converted values · {period} periods only</span>
                     <span>Gaps mean a source amount is unavailable or ambiguous</span>
                   </div>
                   {performanceData.length ? (
@@ -504,7 +505,7 @@ export default function AirlineAnalyticsPage() {
                   <div className="analytics-legend">
                     {PERFORMANCE_LINES.map((line) => <span key={line.metric}><i style={{ background: line.color }} />{line.label}</span>)}
                   </div>
-                  <div className="analytics-chart-foot"><Info size={14} /> Values use reported amounts on the selected currency and unit basis; periods are not annualised.</div>
+                  <div className="analytics-chart-foot"><Info size={14} /> Charted amounts use the workbook’s converted AMOUNT (USD); source currency and unit remain in the reporting basis. Periods are not annualised.</div>
                   <TraceRows snapshots={snapshots} metrics={PERFORMANCE_LINES.map(({ metric, label }) => ({ metric, label }))} title="Trace every plotted reported line" />
                 </section>
 

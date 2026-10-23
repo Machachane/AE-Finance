@@ -1,9 +1,11 @@
 export type StatementExportRow = {
   airline: string;
   metric: string;
-  amount: number | null;
   amountUsd: number | null;
   currency: string | null;
+  sourceCurrency: string | null;
+  fxRate: number | null;
+  fxBasis: string | null;
   unit: string | null;
   financialYear: string;
   reportingPeriod: string;
@@ -23,9 +25,11 @@ export type StatementExportRow = {
 const columns: { header: string; key: keyof StatementExportRow }[] = [
   { header: 'AIRLINE', key: 'airline' },
   { header: 'METRIC', key: 'metric' },
-  { header: 'AMOUNT', key: 'amount' },
   { header: 'AMOUNT (USD)', key: 'amountUsd' },
   { header: 'CURRENCY', key: 'currency' },
+  { header: 'SOURCE CURRENCY', key: 'sourceCurrency' },
+  { header: 'FX RATE (units per USD)', key: 'fxRate' },
+  { header: 'FX BASIS', key: 'fxBasis' },
   { header: 'UNIT', key: 'unit' },
   { header: 'FINANCIAL YEAR', key: 'financialYear' },
   { header: 'REPORTING PERIOD', key: 'reportingPeriod' },
