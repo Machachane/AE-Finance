@@ -29,7 +29,7 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
           Financial Ratios &amp; KPIs
         </Link>
         <Link href="/analytics" className={`main-menu-link ${activePage === 'analytics' ? 'active' : ''}`} aria-current={activePage === 'analytics' ? 'page' : undefined} data-testid="link-airline-analytics">
-          Airline Analytics
+          Airline Financial Analytics
         </Link>
         <Link href="/aviation-finance" className={`main-menu-link ${activePage === 'aviation-finance' ? 'active' : ''}`} aria-current={activePage === 'aviation-finance' ? 'page' : undefined} data-testid="link-aviation-finance">
           Aviation Finance

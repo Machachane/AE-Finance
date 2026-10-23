@@ -529,7 +529,7 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .af-table-detailed .af-period-heading,.af-table-detailed .af-period-value { display:none; }
 }
 
-/* Airline analytics — source-linked financial dashboard */
+/* Airline financial analytics — source-linked financial dashboard */
 .airline-analytics-page { max-width:1560px;padding-top:37px; }
 .analytics-heading {
   display:flex;align-items:flex-end;justify-content:space-between;gap:26px;

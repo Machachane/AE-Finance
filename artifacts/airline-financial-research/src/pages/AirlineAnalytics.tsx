@@ -390,7 +390,7 @@ export default function AirlineAnalyticsPage() {
         <section className="analytics-heading">
           <div className="analytics-heading-copy">
             <div className="eyebrow">AIRLINE ECONOMICS · SOURCE-LINKED ANALYSIS</div>
-            <h1>Airline <span>analytics</span></h1>
+            <h1>Airline Financial <span>Analytics</span></h1>
             <p>A reported-line view of performance, profitability and balance-sheet context. Every figure stays on one selected reporting basis.</p>
           </div>
           <div className="analytics-heading-note">
