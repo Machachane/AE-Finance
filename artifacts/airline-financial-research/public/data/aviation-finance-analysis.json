@@ -1,0 +1,195 @@
+{
+  "sourceFile": "Fin_Analysis_1793213780927.xlsx",
+  "year": 2025,
+  "periods": ["H1", "H2", "YR"],
+  "tables": [
+    {
+      "id": "facility",
+      "title": "Facility Analysis",
+      "rows": [
+        {
+          "label": "Unsecured Notes/Bonds",
+          "order": 1,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.4891082980945336,
+            "H2": 0.5325930409215779,
+            "YR": 0.5102342589171479
+          }
+        },
+        {
+          "label": "Secured Loans",
+          "order": 2,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.31949120667516595,
+            "H2": 0.22797359786845608,
+            "YR": 0.2750296946013849
+          }
+        },
+        {
+          "label": "Warehouses",
+          "order": 3,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.045812357426147636,
+            "H2": 0.02601300130982524,
+            "YR": 0.03619334177989949
+          }
+        },
+        {
+          "label": "ABSs/EETC",
+          "order": 4,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.07089324147443793,
+            "H2": 0.10730224509526705,
+            "YR": 0.08858163363403669
+          }
+        },
+        {
+          "label": "Other Finance",
+          "order": 5,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.03401057058337285,
+            "H2": 0.0805353285167109,
+            "YR": 0.056613445741002515
+          }
+        },
+        {
+          "label": "JOLCOs",
+          "order": 6,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.04068432574634213,
+            "H2": 0.025582786288162747,
+            "YR": 0.03334762532652854
+          }
+        },
+        {
+          "label": "Total ($Bn)",
+          "order": 7,
+          "valueKind": "usdBillions",
+          "values": {
+            "H1": 68.7587405882353,
+            "H2": 64.96751297058823,
+            "YR": 133.72625355882352
+          }
+        }
+      ]
+    },
+    {
+      "id": "geography",
+      "title": "Geographic Analysis",
+      "rows": [
+        {
+          "label": "Africa Deals",
+          "order": 1,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.0043558098568670526,
+            "H2": 0.011078906473237634,
+            "YR": 0.007622056050135614
+          }
+        },
+        {
+          "label": "Europe Deals",
+          "order": 2,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.27382185780547486,
+            "H2": 0.2270771697427755,
+            "YR": 0.2511121351653827
+          }
+        },
+        {
+          "label": "Americas Deals",
+          "order": 3,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.4825679065110344,
+            "H2": 0.6062821585587219,
+            "YR": 0.5426713421540532
+          }
+        },
+        {
+          "label": "APAC Deals",
+          "order": 4,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.10328993723912351,
+            "H2": 0.07490218999460554,
+            "YR": 0.08949846930943432
+          }
+        },
+        {
+          "label": "Middle East Deals",
+          "order": 5,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.1359644885875001,
+            "H2": 0.08065957523065938,
+            "YR": 0.10909599732099419
+          }
+        }
+      ]
+    },
+    {
+      "id": "financier",
+      "title": "Financier Analysis",
+      "rows": [
+        {
+          "label": "French, Japanese, US Banks:",
+          "order": 1,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.4509806896109466,
+            "H2": 0.6598492403524794,
+            "YR": 0.5524541842937201
+          }
+        },
+        {
+          "label": "Alternative Lenders:",
+          "order": 2,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.06668892824305588,
+            "H2": 0.040268356912236486,
+            "YR": 0.0538531629019569
+          }
+        },
+        {
+          "label": "Middle East Lenders:",
+          "order": 3,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.0634489030680868,
+            "H2": 0.030443171554874363,
+            "YR": 0.05641580497563093
+          }
+        },
+        {
+          "label": "Other APAC Lenders:",
+          "order": 4,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.07243447583136077,
+            "H2": 0.05609982333247072,
+            "YR": 0.06780769738191048
+          }
+        },
+        {
+          "label": "Other European Lenders:",
+          "order": 5,
+          "valueKind": "percentage",
+          "values": {
+            "H1": 0.1525761210021399,
+            "H2": 0.11598530376716264,
+            "YR": 0.1333797827738457
+          }
+        }
+      ]
+    }
+  ]
+}

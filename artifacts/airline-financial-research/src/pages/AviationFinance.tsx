@@ -12,13 +12,33 @@ type Mla = {
   year: number;
 };
 type Borrower = { name: string; totalUsdM: number; numberOfDeals: number; reportingPeriod: string; year: number };
-type FinanceData = {
+type AnalysisPeriod = 'H1' | 'H2' | 'YR';
+type FinanceAnalysisRow = {
+  label: string;
+  order: number;
+  valueKind: 'percentage' | 'usdBillions';
+  values: Record<AnalysisPeriod, number>;
+};
+type FinanceAnalysisTable = { id: string; title: string; rows: FinanceAnalysisRow[] };
+type FinanceAnalysisWorkbook = {
+  sourceFile: string;
+  year: number;
+  periods: AnalysisPeriod[];
+  tables: FinanceAnalysisTable[];
+};
+type RankingsPayload = {
   metadata: { mlaSourceFile: string; borrowerSourceFile: string; amountUnit: string; rankedDataNote: string };
   mlas: Mla[];
   borrowers: Borrower[];
 };
+type FinanceData = {
+  metadata: RankingsPayload['metadata'];
+  mlas: RankingsPayload['mlas'];
+  borrowers: RankingsPayload['borrowers'];
+  analysis: FinanceAnalysisWorkbook;
+};
 
-const PERIOD_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'H1', 'YR'];
+const PERIOD_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2', 'YR'];
 const isNamedEntity = (name: string) => {
   const normalized = name.trim().toLowerCase();
   return !!normalized && !/(undisclosed|non[-\s]?disclosed|unnamed|no mla|not disclosed|n\/a|unknown)/i.test(normalized);
@@ -27,6 +47,13 @@ const formatAmount = (value: number) => new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
   maximumFractionDigits: 1,
 }).format(value);
+const formatAnalysisValue = (row: FinanceAnalysisRow, period: AnalysisPeriod) => {
+  const value = row.values[period];
+  if (row.valueKind === 'percentage') {
+    return new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 0 }).format(value);
+  }
+  return `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)} Bn`;
+};
 
 type RankedRow = { name: string; year: number; reportingPeriod: string; numberOfDeals?: number };
 type BarTone = 'mlas' | 'borrowers' | 'capital' | 'commercial';
@@ -100,6 +127,39 @@ function Leaderboard<T extends RankedRow>({
   );
 }
 
+function AnalysisTable({ table, period, year }: { table: FinanceAnalysisTable; period: AnalysisPeriod; year: number }) {
+  const periodLabel = period === 'YR' ? `Year ${year}` : `${period}/${year}`;
+  return (
+    <section className="panel af-board" aria-label={table.title} data-testid={`board-analysis-${table.id}`}>
+      <header className="af-board-head">
+        <div>
+          <span className="af-kicker">SUPPLEMENTAL FINANCING ANALYSIS</span>
+          <h2>{table.title}</h2>
+        </div>
+        <span className="af-limit">UPLOADED DATA</span>
+      </header>
+      <div className="af-table-wrap">
+        <table className="af-table af-analysis-table">
+          <thead><tr>
+            <th scope="col" className="af-analysis-order-heading">Order</th>
+            <th scope="col">Category</th>
+            <th scope="col" className="af-analysis-value-heading">{periodLabel}</th>
+          </tr></thead>
+          <tbody>
+            {table.rows.map((row) => (
+              <tr key={`${table.id}-${row.order}`} data-testid={`row-analysis-${table.id}-${row.order}`}>
+                <td className="af-analysis-order">{row.order}</td>
+                <th scope="row">{row.label}</th>
+                <td className="af-analysis-value">{formatAnalysisValue(row, period)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function LoadingBoards() {
   return <div className="af-loading" aria-label="Loading aviation finance workbook" data-testid="status-aviation-finance-loading">
     {[0, 1, 2, 3].map((item) => <div className="panel af-skeleton" key={item}><i /><i /><i /><i /></div>)}
@@ -118,16 +178,22 @@ export default function AviationFinancePage() {
     let active = true;
     setLoading(true);
     setError('');
-    fetch(`${import.meta.env.BASE_URL}data/aviation-finance-rankings.json`)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Supplied workbook data could not be loaded (${response.status}).`);
-        return response.json() as Promise<FinanceData>;
-      })
-      .then((payload) => {
-        if (!payload || !Array.isArray(payload.mlas) || !Array.isArray(payload.borrowers) || !payload.metadata) {
+    Promise.all([
+      fetch(`${import.meta.env.BASE_URL}data/aviation-finance-rankings.json`).then((response) => {
+        if (!response.ok) throw new Error(`Supplied ranking workbook data could not be loaded (${response.status}).`);
+        return response.json() as Promise<RankingsPayload>;
+      }),
+      fetch(`${import.meta.env.BASE_URL}data/aviation-finance-analysis.json`).then((response) => {
+        if (!response.ok) throw new Error(`Supplemental analysis workbook data could not be loaded (${response.status}).`);
+        return response.json() as Promise<FinanceAnalysisWorkbook>;
+      }),
+    ])
+      .then(([payload, analysis]) => {
+        if (!payload || !Array.isArray(payload.mlas) || !Array.isArray(payload.borrowers) || !payload.metadata
+          || !analysis || !Array.isArray(analysis.tables) || !Array.isArray(analysis.periods)) {
           throw new Error('The supplied workbook data has an unexpected structure.');
         }
-        if (active) { setData(payload); setLoading(false); }
+        if (active) { setData({ ...payload, analysis }); setLoading(false); }
       })
       .catch((reason: unknown) => {
         if (!active) return;
@@ -138,7 +204,7 @@ export default function AviationFinancePage() {
   }, [attempt]);
 
   const years = useMemo(() => data
-    ? [...new Set([...data.mlas.map((row) => row.year), ...data.borrowers.map((row) => row.year)])].sort((a, b) => b - a)
+    ? [...new Set([...data.mlas.map((row) => row.year), ...data.borrowers.map((row) => row.year), data.analysis.year])].sort((a, b) => b - a)
     : [2026, 2025], [data]);
   const periods = useMemo(() => {
     if (!data) return year === 2026 ? ['Q1', 'Q2', 'H1'] : ['Q1', 'Q2', 'Q3', 'Q4', 'YR'];
@@ -146,6 +212,7 @@ export default function AviationFinancePage() {
       ...data.mlas.filter((row) => row.year === year).map((row) => row.reportingPeriod),
       ...data.borrowers.filter((row) => row.year === year).map((row) => row.reportingPeriod),
     ]);
+    if (year === data.analysis.year) data.analysis.periods.forEach((item) => available.add(item));
     return PERIOD_ORDER.filter((item) => available.has(item));
   }, [data, year]);
 
@@ -155,6 +222,7 @@ export default function AviationFinancePage() {
       ...data.mlas.filter((row) => row.year === nextYear).map((row) => row.reportingPeriod),
       ...data.borrowers.filter((row) => row.year === nextYear).map((row) => row.reportingPeriod),
     ]) : new Set(nextYear === 2026 ? ['Q1', 'Q2', 'H1'] : ['Q1', 'Q2', 'Q3', 'Q4', 'YR']);
+    if (data && nextYear === data.analysis.year) data.analysis.periods.forEach((item) => available.add(item));
     const preferred = nextYear === 2026 ? 'H1' : 'YR';
     setPeriod(available.has(preferred) ? preferred : PERIOD_ORDER.find((item) => available.has(item)) ?? '');
   };
@@ -170,10 +238,17 @@ export default function AviationFinancePage() {
       borrowers: eligible(borrowers, (row) => row.totalUsdM).sort((a, b) => b.totalUsdM - a.totalUsdM),
       capital: eligible(mlas, (row) => row.capitalMarketsUsdM).sort((a, b) => b.capitalMarketsUsdM - a.capitalMarketsUsdM),
       commercial: eligible(mlas, (row) => row.commercialUsdM).sort((a, b) => b.commercialUsdM - a.commercialUsdM),
+      analysisPeriod: year === data.analysis.year && data.analysis.periods.includes(period as AnalysisPeriod)
+        ? period as AnalysisPeriod
+        : null,
+      analysisTables: year === data.analysis.year && data.analysis.periods.includes(period as AnalysisPeriod)
+        ? data.analysis.tables
+        : [],
     };
   }, [data, year, period]);
 
   const visibleCount = filtered ? filtered.mlas.length + filtered.borrowers.length : 0;
+  const analysisYear = data?.analysis.year ?? 2025;
   return (
     <div className="app-shell">
       <SiteHeader activePage="aviation-finance" status="Supplied workbook · source-transparent" />
@@ -193,14 +268,14 @@ export default function AviationFinancePage() {
 
         <div className="af-disclosure" role="note" data-testid="text-aviation-finance-disclosure">
           <ShieldCheck size={16} aria-hidden="true" />
-          <p>Values are shown as <strong>USD millions</strong> from the supplied workbooks. Undisclosed names are excluded from named rankings. Source workbook totals are displayed as supplied and have not been independently verified.</p>
+          <p>Rankings are shown in <strong>USD millions</strong>. The uploaded analysis tables retain the workbook’s percentage and USD billion values. Source workbook figures are displayed as supplied and have not been independently verified.</p>
         </div>
 
         <div className="af-finance-layout">
           <aside className="panel af-controls" aria-label="Leaderboard filters">
             <div className="af-filter-intro">
               <div className="af-filter-icon"><Landmark size={17} aria-hidden="true" /></div>
-              <div><strong>Rankings period</strong><span>All boards use the same selected period.</span></div>
+              <div><strong>Rankings period</strong><span>Rankings and supplemental tables follow this selection when available.</span></div>
             </div>
             <div className="af-filter-fields">
               <label className="statement-field">
@@ -212,7 +287,7 @@ export default function AviationFinancePage() {
               <label className="statement-field">
                 <span>Reporting period</span>
                 <select data-testid="select-aviation-finance-period" aria-label="Reporting period" value={period} onChange={(event) => setPeriod(event.target.value)} disabled={loading || !periods.length}>
-                  {periods.map((item) => <option key={item} value={item}>{item === 'YR' ? 'Full year · YR' : item === 'H1' ? 'Half year · H1' : `Quarter ${item.slice(1)} · ${item}`}</option>)}
+                  {periods.map((item) => <option key={item} value={item}>{item === 'YR' ? 'Full year · YR' : item === 'H1' || item === 'H2' ? `Half year · ${item}` : `Quarter ${item.slice(1)} · ${item}`}</option>)}
                 </select>
               </label>
             </div>
@@ -238,10 +313,36 @@ export default function AviationFinancePage() {
               </div>
             )}
 
+            {!loading && !error && filtered && (
+              <section className="af-analysis-section" aria-labelledby="af-analysis-title" data-testid="section-uploaded-analysis">
+                <header className="af-analysis-section-head">
+                  <span className="af-kicker">ADDITIONAL WORKBOOK TABLES</span>
+                  <h2 id="af-analysis-title">Financial analysis</h2>
+                  <p>Facility, geographic, and financier breakdowns from the uploaded workbook.</p>
+                </header>
+                {filtered.analysisPeriod ? (
+                  <div className="af-board-stack">
+                    {filtered.analysisTables.map((table) => (
+                      <AnalysisTable key={table.id} table={table} period={filtered.analysisPeriod!} year={analysisYear} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="panel af-analysis-note" data-testid="text-analysis-period-unavailable">
+                    <Landmark size={17} aria-hidden="true" />
+                    <span>
+                      {year === analysisYear
+                        ? 'The uploaded analysis workbook includes H1, H2, and full-year values only. Select one of those reporting periods to view these tables.'
+                        : `The uploaded analysis workbook contains data for ${analysisYear} only.`}
+                    </span>
+                  </div>
+                )}
+              </section>
+            )}
+
             {data && !loading && !error && (
               <footer className="af-source-footer" data-testid="text-aviation-finance-sources">
                 <span><i /> Source files supplied with this workspace</span>
-                <span>{data.metadata.mlaSourceFile} <b>·</b> {data.metadata.borrowerSourceFile}</span>
+                <span>{data.metadata.mlaSourceFile} <b>·</b> {data.metadata.borrowerSourceFile} <b>·</b> {data.analysis.sourceFile}</span>
               </footer>
             )}
           </div>
