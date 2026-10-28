@@ -12,9 +12,8 @@ type FinancialResultRow = {
   reportingPeriod: string;
   fiscalYearEnd: string | null;
   currency: string | null;
-  sourceCurrency: string | null;
   status: string | null;
-  amountUsd: number | null;
+  amount: number | null;
   date: string | null;
   reportingScope: string | null;
   ifrs16Asc842Adoption: string | null;
@@ -29,14 +28,9 @@ type FinancialResultRow = {
   unit?: string | null;
   valueBasis?: string | null;
   reportingEntity?: string | null;
-  fxRate?: number | null;
-  fxBasis?: string | null;
 };
 
-type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus' | 'sourceTitle' | 'currency' | 'sourceCurrency'> & {
-  currency: string | null;
-  sourceTitle?: string | null;
-};
+type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus'>;
 
 const WORKBOOK_AIRLINE_COUNT = 142;
 const WORKBOOK_ROW_COUNT = 6358;
@@ -94,9 +88,8 @@ const EXPORT_COLUMNS = [
   { header: 'REPORTING PERIOD', key: 'reportingPeriod' },
   { header: 'FISCAL YEAR-END', key: 'fiscalYearEnd' },
   { header: 'CURRENCY', key: 'currency' },
-  { header: 'SOURCE CURRENCY', key: 'sourceCurrency' },
   { header: 'STATUS', key: 'status' },
-  { header: 'AMOUNT (USD)', key: 'amountUsd' },
+  { header: 'AMOUNT', key: 'amount' },
   { header: 'DATE', key: 'date' },
   { header: 'Reporting Scope', key: 'reportingScope' },
   { header: 'IFRS16/ASC842 Adoption', key: 'ifrs16Asc842Adoption' },
@@ -106,8 +99,6 @@ const EXPORT_COLUMNS = [
   { header: 'REPORTING ENTITY', key: 'reportingEntity' },
   { header: 'SOURCE LINK', key: 'sourceUrl' },
   { header: 'SOURCE NOTE', key: 'note' },
-  { header: 'FX RATE (units per USD)', key: 'fxRate' },
-  { header: 'FX BASIS', key: 'fxBasis' },
   { header: 'VERIFICATION STATUS', key: 'verificationStatus' },
 ] as const;
 
@@ -219,10 +210,10 @@ function exportXlsx(rows: FinancialResultRow[]) {
   downloadBlob(makeZip(files), 'airline-financials.xlsx');
 }
 
-function formatUsdAmount(row: FinancialResultRow) {
-  if (row.amountUsd === null) return 'Unavailable';
-  const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(row.amountUsd);
-  return `USD ${amount}${row.unit ? ` ${row.unit}` : ''}`;
+function formatAmount(row: FinancialResultRow) {
+  if (row.amount === null) return 'Unavailable';
+  const amount = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amount);
+  return `${amount}${row.unit ? ` ${row.unit}` : ''}`;
 }
 
 export default function Home() {
@@ -298,8 +289,7 @@ export default function Home() {
         financialYear: record.financialYear,
         reportingPeriod: record.reportingPeriod,
         fiscalYearEnd: record.fiscalYearEnd,
-        currency: 'USD',
-        sourceCurrency: record.currency,
+        currency: record.currency,
         status: record.status,
         date: record.date,
         reportingScope: record.reportingScope,
@@ -312,12 +302,10 @@ export default function Home() {
         metricId: record.metricId,
         categoryId: record.categoryId,
         category: record.category,
-        amountUsd: record.amountUsd,
+        amount: record.amount,
         unit: record.unit,
         valueBasis: record.valueBasis,
         reportingEntity: record.reportingEntity,
-        fxRate: record.fxRate,
-        fxBasis: record.fxBasis,
       }));
     const unmatchedAirline = !workbookAirlines.some((available) =>
       available.toLocaleLowerCase() === selectedAirline,
@@ -430,11 +418,11 @@ export default function Home() {
             {rows.length > 0 && <div className="table-scroll">
               <table className="results-table">
                 <thead><tr>
-                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>SOURCE CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT (USD)</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Verification Status</th><th>Source Link</th><th>Source Note</th>
+                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Verification Status</th><th>Source Link</th><th>Source Note</th>
                 </tr></thead>
                 <tbody>{rows.map((row, index) => <tr key={`${row.airline}-${row.metric}-${row.financialYear}-${index}`} data-testid={`row-research-${index}`}>
-                  <td className="metric-cell">{row.metric}</td><td className="airline-cell">{row.airline}</td><td>{row.financialYear || '—'}</td><td>{row.reportingPeriod || '—'}</td><td>{row.fiscalYearEnd || '—'}</td><td>{row.currency || '—'}</td><td>{row.sourceCurrency || '—'}</td><td>{row.status || '—'}</td>
-                  <td className={`amount-cell ${row.amountUsd === null ? 'muted-cell' : ''}`}>{formatUsdAmount(row)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td><td>{row.valueBasis || '—'}</td>
+                  <td className="metric-cell">{row.metric}</td><td className="airline-cell">{row.airline}</td><td>{row.financialYear || '—'}</td><td>{row.reportingPeriod || '—'}</td><td>{row.fiscalYearEnd || '—'}</td><td>{row.currency || '—'}</td><td>{row.status || '—'}</td>
+                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`}>{formatAmount(row)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td><td>{row.valueBasis || '—'}</td>
                   <td><span className={`status-badge status-${row.verificationStatus}`}>{row.verificationStatus === 'needs_review' ? 'Needs review' : row.verificationStatus}</span></td>
                   <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
                   <td><span className="note-text">{row.note || '—'}</span></td>
@@ -449,7 +437,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Select an airline.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
-            <div className="footnote"><span>Financial amounts and exports use the workbook’s converted AMOUNT (USD). CURRENCY is USD; SOURCE CURRENCY records the original denomination.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
+            <div className="footnote"><span>Financial amounts and exports retain the workbook’s original AMOUNT and CURRENCY values; no currency conversion is applied.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
           </section>
         </div>
       </main>

@@ -7,9 +7,7 @@ type WorkbookRecord = StatementExportRow & {
   category: string;
 };
 
-type SourceWorkbookRecord = Omit<WorkbookRecord, 'currency' | 'sourceCurrency'> & {
-  currency: string | null;
-};
+type SourceWorkbookRecord = Omit<WorkbookRecord, 'verificationStatus'>;
 
 const WORKBOOK_ROW_COUNT = 6358;
 const BALANCE_SHEET_METRICS = new Set([
@@ -43,9 +41,9 @@ const CATEGORY_ORDER: Record<'Balance Sheet' | 'Profit & Loss', string[]> = {
   'Profit & Loss': ['Revenue', 'Total Revenue', 'Costs', 'Profit/(Loss)', 'Financial/Taxation'],
 };
 
-function formatUsdAmount(row: WorkbookRecord) {
-  if (row.amountUsd === null) return 'Unavailable';
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amountUsd);
+function formatAmount(row: WorkbookRecord) {
+  if (row.amount === null) return 'Unavailable';
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(row.amount);
 }
 
 function statementGroup(metric: string) {
@@ -68,11 +66,8 @@ function completeStatementRows(
       airline,
       metric,
       category,
-      amountUsd: null,
-      currency: 'USD',
-      sourceCurrency: null,
-      fxRate: null,
-      fxBasis: null,
+      amount: null,
+      currency: null,
       unit: null,
       financialYear: year,
       reportingPeriod: period,
@@ -140,7 +135,7 @@ function StatementTable({
         {rows.length ? (
           <table className="statement-table">
             <thead>
-              <tr><th>Category</th><th>Metric</th><th className="statement-amount-heading">Total Amount (USD)</th></tr>
+              <tr><th>Category</th><th>Metric</th><th className="statement-amount-heading">Total Amount</th></tr>
             </thead>
             <tbody>
               {groupedRows.map(({ category, rows: categoryRows }) => categoryRows.map((row, index) => (
@@ -156,19 +151,16 @@ function StatementTable({
                     <details className="statement-row-details">
                       <summary>Source &amp; reporting details</summary>
                       <div>{row.status || 'Status not stated'} · {row.fiscalYearEnd || 'Fiscal year-end not stated'} · {row.date || 'Date not stated'}</div>
-                      <div>Amount (USD): {row.amountUsd === null ? 'Unavailable' : `USD ${formatUsdAmount(row)}${row.unit ? ` ${row.unit}` : ''}`}</div>
+                      <div>Amount: {row.amount === null ? 'Unavailable' : `${formatAmount(row)}${row.unit ? ` ${row.unit}` : ''}`}</div>
                       <div>Currency: {row.currency || 'Not stated'}</div>
-                      <div>Source currency: {row.sourceCurrency || 'Not stated'}</div>
-                      {row.fxRate !== null && <div>FX rate (source units per USD): {row.fxRate}</div>}
-                      {row.fxBasis && <div>FX basis: {row.fxBasis}</div>}
                       {row.ifrs16Asc842Adoption && <div>Lease standard: {row.ifrs16Asc842Adoption}</div>}
                       {row.inAdministration && <div>In administration: {row.inAdministration}</div>}
                       {row.note && <div>{row.note}</div>}
                     </details>
                   </td>
                   <td className="statement-amount">
-                    <strong>{formatUsdAmount(row)}</strong>
-                    <span>{row.amountUsd === null ? 'USD value unavailable' : `${row.unit || 'Units'} · USD`}</span>
+                    <strong>{formatAmount(row)}</strong>
+                    <span>{row.amount === null ? 'Amount unavailable' : `${row.currency || 'Currency not stated'} · ${row.unit || 'Units'}`}</span>
                   </td>
                 </tr>
               )))}
@@ -206,8 +198,6 @@ export default function FinancialStatementsPage() {
         if (!Array.isArray(data) || data.length !== WORKBOOK_ROW_COUNT) throw new Error('Workbook data failed its row-count check.');
         setRecords(data.map((record) => ({
           ...record,
-          currency: 'USD',
-          sourceCurrency: record.currency,
           verificationStatus: 'needs_review',
         })));
         setAirline(data[0]?.airline ?? '');
@@ -301,7 +291,7 @@ export default function FinancialStatementsPage() {
                 <StatementTable title="Profit & Loss" rows={profitLossRows} airline={airline} year={year} period={period} emptyText="No Profit & Loss line items are available for this selection." />
               </div>
             )}
-            <div className="statements-footnote">Each statement can be downloaded separately as CSV or Excel. Amounts and CURRENCY use USD; SOURCE CURRENCY, FX rate, FX basis, reporting scope, source note, and clickable source link are retained.</div>
+            <div className="statements-footnote">Each statement can be downloaded separately as CSV or Excel. AMOUNT, CURRENCY, and UNIT retain the values reported in the workbook; no currency conversion is applied.</div>
           </div>
         )}
       </main>
