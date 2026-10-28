@@ -40,6 +40,44 @@ const columns: { header: string; key: keyof StatementExportRow }[] = [
   { header: 'VERIFICATION STATUS', key: 'verificationStatus' },
 ];
 
+function rowsToGrid(rows: StatementExportRow[]) {
+  return [columns.map((column) => column.header), ...rows.map((row) => columns.map((column) => row[column.key]))];
+}
+
+export function buildStatementCsvContent(rows: StatementExportRow[]) {
+  const cell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  return rowsToGrid(rows).map((line) => line.map(cell).join(',')).join('\r\n');
+}
+
+export function buildStatementXlsxWorksheetParts(rows: StatementExportRow[]) {
+  const allRows = rowsToGrid(rows);
+  const sourceColumn = columns.findIndex((column) => column.key === 'sourceUrl');
+  const hyperlinks: { ref: string; id: string; url: string }[] = [];
+  const sheetRows = allRows.map((row, rowIndex) => {
+    const cells = row.map((value, columnIndex) => {
+      const ref = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
+      if (rowIndex > 0 && columnIndex === sourceColumn && typeof value === 'string' && value.startsWith('http')) {
+        hyperlinks.push({ ref, id: `rId${hyperlinks.length + 1}`, url: value });
+      }
+      return typeof value === 'number'
+        ? `<c r="${ref}" t="n"><v>${value}</v></c>`
+        : `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
+    }).join('');
+    return `<row r="${rowIndex + 1}">${cells}</row>`;
+  }).join('');
+  const links = hyperlinks.length
+    ? `<hyperlinks>${hyperlinks.map(({ ref, id }) => `<hyperlink ref="${ref}" r:id="${id}"/>`).join('')}</hyperlinks>`
+    : '';
+  const relations = hyperlinks.length
+    ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hyperlinks.map(({ id, url }) => `<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXml(url)}" TargetMode="External"/>`).join('')}</Relationships>`
+    : '';
+
+  return {
+    sheetXml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData>${sheetRows}</sheetData>${links}</worksheet>`,
+    hyperlinkRelationships: relations,
+  };
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -56,11 +94,8 @@ function safeName(value: string) {
 }
 
 export function exportStatementCsv(rows: StatementExportRow[], title: string, airline: string, year: string, period: string) {
-  const cell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`;
-  const csv = [columns.map((column) => column.header), ...rows.map((row) => columns.map((column) => row[column.key]))]
-    .map((line) => line.map(cell).join(',')).join('\r\n');
   downloadBlob(
-    new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' }),
+    new Blob(['\ufeff', buildStatementCsvContent(rows)], { type: 'text/csv;charset=utf-8' }),
     `${safeName(airline)}-${year}-${safeName(period)}-${safeName(title)}.csv`,
   );
 }
@@ -118,34 +153,14 @@ function makeZip(files: { name: string; content: string }[]) {
 }
 
 export function exportStatementXlsx(rows: StatementExportRow[], title: string, airline: string, year: string, period: string) {
-  const allRows = [columns.map((column) => column.header), ...rows.map((row) => columns.map((column) => row[column.key]))];
-  const sourceColumn = columns.findIndex((column) => column.key === 'sourceUrl');
-  const hyperlinks: { ref: string; id: string; url: string }[] = [];
-  const sheetRows = allRows.map((row, rowIndex) => {
-    const cells = row.map((value, columnIndex) => {
-      const ref = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
-      if (rowIndex > 0 && columnIndex === sourceColumn && typeof value === 'string' && value.startsWith('http')) {
-        hyperlinks.push({ ref, id: `rId${hyperlinks.length + 1}`, url: value });
-      }
-      return typeof value === 'number'
-        ? `<c r="${ref}" t="n"><v>${value}</v></c>`
-        : `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
-    }).join('');
-    return `<row r="${rowIndex + 1}">${cells}</row>`;
-  }).join('');
-  const links = hyperlinks.length
-    ? `<hyperlinks>${hyperlinks.map(({ ref, id }) => `<hyperlink ref="${ref}" r:id="${id}"/>`).join('')}</hyperlinks>`
-    : '';
-  const relations = hyperlinks.length
-    ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hyperlinks.map(({ id, url }) => `<Relationship Id="${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXml(url)}" TargetMode="External"/>`).join('')}</Relationships>`
-    : '';
+  const { sheetXml, hyperlinkRelationships } = buildStatementXlsxWorksheetParts(rows);
   const files = [
     { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
     { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
     { name: 'xl/workbook.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${escapeXml(title.slice(0, 31))}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
     { name: 'xl/_rels/workbook.xml.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
-    { name: 'xl/worksheets/sheet1.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData>${sheetRows}</sheetData>${links}</worksheet>` },
-    ...(relations ? [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', content: relations }] : []),
+    { name: 'xl/worksheets/sheet1.xml', content: sheetXml },
+    ...(hyperlinkRelationships ? [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', content: hyperlinkRelationships }] : []),
   ];
   downloadBlob(makeZip(files), `${safeName(airline)}-${year}-${safeName(period)}-${safeName(title)}.xlsx`);
 }

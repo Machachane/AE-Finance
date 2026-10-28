@@ -4,32 +4,14 @@ import {
   FileText, Info, LoaderCircle, Search, ShieldCheck,
 } from 'lucide-react';
 import SiteHeader from '@/components/SiteHeader';
+import {
+  buildResearchCsvContent,
+  buildResearchXlsxWorksheetParts,
+  RESEARCH_EXPORT_COLUMNS,
+  type ResearchExportRow,
+} from '@/lib/research-exports';
 
-type FinancialResultRow = {
-  metric: string;
-  airline: string;
-  financialYear: string;
-  reportingPeriod: string;
-  fiscalYearEnd: string | null;
-  currency: string | null;
-  status: string | null;
-  amount: number | null;
-  date: string | null;
-  reportingScope: string | null;
-  ifrs16Asc842Adoption: string | null;
-  inAdministration: string | null;
-  sourceUrl: string | null;
-  sourceTitle?: string | null;
-  verificationStatus: 'verified' | 'unavailable' | 'needs_review';
-  note: string | null;
-  metricId?: number | null;
-  categoryId?: number | null;
-  category?: string | null;
-  unit?: string | null;
-  valueBasis?: string | null;
-  reportingEntity?: string | null;
-};
-
+type FinancialResultRow = ResearchExportRow;
 type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus'>;
 
 const WORKBOOK_AIRLINE_COUNT = 142;
@@ -78,37 +60,6 @@ const METRICS = [
 
 const GROUPS = ['All metrics', 'Revenue', 'Profit & costs', 'Assets', 'Liabilities & equity'];
 const DEFAULT_METRICS = METRICS.map((metric) => metric.name);
-const EXPORT_COLUMNS = [
-  { header: 'AIRLINE', key: 'airline' },
-  { header: 'ID_METRIC', key: 'metricId' },
-  { header: 'METRIC', key: 'metric' },
-  { header: 'ID_CATEGORY', key: 'categoryId' },
-  { header: 'CATEGORY', key: 'category' },
-  { header: 'FINANCIAL YEAR', key: 'financialYear' },
-  { header: 'REPORTING PERIOD', key: 'reportingPeriod' },
-  { header: 'FISCAL YEAR-END', key: 'fiscalYearEnd' },
-  { header: 'CURRENCY', key: 'currency' },
-  { header: 'STATUS', key: 'status' },
-  { header: 'AMOUNT', key: 'amount' },
-  { header: 'DATE', key: 'date' },
-  { header: 'Reporting Scope', key: 'reportingScope' },
-  { header: 'IFRS16/ASC842 Adoption', key: 'ifrs16Asc842Adoption' },
-  { header: 'In Administration', key: 'inAdministration' },
-  { header: 'UNIT', key: 'unit' },
-  { header: 'VALUE BASIS', key: 'valueBasis' },
-  { header: 'REPORTING ENTITY', key: 'reportingEntity' },
-  { header: 'SOURCE LINK', key: 'sourceUrl' },
-  { header: 'SOURCE NOTE', key: 'note' },
-  { header: 'VERIFICATION STATUS', key: 'verificationStatus' },
-] as const;
-
-function escapeXml(value: unknown) {
-  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-}
-
-function rowValues(row: FinancialResultRow): unknown[] {
-  return EXPORT_COLUMNS.map(({ key }) => row[key]);
-}
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -122,12 +73,7 @@ function downloadBlob(blob: Blob, filename: string) {
 }
 
 function exportCsv(rows: FinancialResultRow[]) {
-  const csvCell = (value: unknown) => {
-    const text = value == null ? '' : String(value);
-    return `"${text.replace(/"/g, '""')}"`;
-  };
-  const content = [EXPORT_COLUMNS.map(({ header }) => header), ...rows.map(rowValues)].map((line) => line.map(csvCell).join(',')).join('\r\n');
-  downloadBlob(new Blob(['\ufeff', content], { type: 'text/csv;charset=utf-8' }), 'airline-financials.csv');
+  downloadBlob(new Blob(['\ufeff', buildResearchCsvContent(rows)], { type: 'text/csv;charset=utf-8' }), 'airline-financials.csv');
 }
 
 function crc32(bytes: Uint8Array) {
@@ -179,32 +125,13 @@ function makeZip(files: { name: string; content: string }[]) {
 }
 
 function exportXlsx(rows: FinancialResultRow[]) {
-  const allRows = [EXPORT_COLUMNS.map(({ header }) => header), ...rows.map(rowValues)];
-  const sourceColumnIndex = EXPORT_COLUMNS.findIndex(({ key }) => key === 'sourceUrl');
-  const hyperlinks: { ref: string; relationshipId: string; url: string }[] = [];
-  const sheetRows = allRows.map((row, rowIndex) => {
-    const cells = row.map((value, columnIndex) => {
-      const reference = `${String.fromCharCode(65 + columnIndex)}${rowIndex + 1}`;
-      if (rowIndex > 0 && columnIndex === sourceColumnIndex && typeof value === 'string' && value.startsWith('http')) {
-        hyperlinks.push({ ref: reference, relationshipId: `rId${hyperlinks.length + 1}`, url: value });
-      }
-      if (typeof value === 'number') return `<c r="${reference}" t="n"><v>${value}</v></c>`;
-      return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
-    }).join('');
-    return `<row r="${rowIndex + 1}">${cells}</row>`;
-  }).join('');
-  const hyperlinkMarkup = hyperlinks.length
-    ? `<hyperlinks>${hyperlinks.map(({ ref, relationshipId }) => `<hyperlink ref="${ref}" r:id="${relationshipId}"/>`).join('')}</hyperlinks>`
-    : '';
-  const hyperlinkRelationships = hyperlinks.length
-    ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${hyperlinks.map(({ relationshipId, url }) => `<Relationship Id="${relationshipId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXml(url)}" TargetMode="External"/>`).join('')}</Relationships>`
-    : '';
+  const { sheetXml, hyperlinkRelationships } = buildResearchXlsxWorksheetParts(rows);
   const files = [
     { name: '[Content_Types].xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>' },
     { name: '_rels/.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
     { name: 'xl/workbook.xml', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Airline financials" sheetId="1" r:id="rId1"/></sheets></workbook>' },
     { name: 'xl/_rels/workbook.xml.rels', content: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>' },
-    { name: 'xl/worksheets/sheet1.xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData>${sheetRows}</sheetData>${hyperlinkMarkup}</worksheet>` },
+    { name: 'xl/worksheets/sheet1.xml', content: sheetXml },
     ...(hyperlinkRelationships ? [{ name: 'xl/worksheets/_rels/sheet1.xml.rels', content: hyperlinkRelationships }] : []),
   ];
   downloadBlob(makeZip(files), 'airline-financials.xlsx');
@@ -437,7 +364,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Select an airline.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
-            <div className="footnote"><span>Financial amounts and exports retain the workbook’s original AMOUNT and CURRENCY values; no currency conversion is applied.</span><span>WORKBOOK FIELDS · {EXPORT_COLUMNS.length}</span></div>
+            <div className="footnote"><span>Financial amounts and exports retain the workbook’s original AMOUNT and CURRENCY values; no currency conversion is applied.</span><span>WORKBOOK FIELDS · {RESEARCH_EXPORT_COLUMNS.length}</span></div>
           </section>
         </div>
       </main>
