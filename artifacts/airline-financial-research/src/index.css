@@ -504,10 +504,8 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 .af-analysis-section-head h2 { margin:5px 0 4px;color:#1b3047;font-size:17px;letter-spacing:-.025em; }
 .af-analysis-section-head p { margin:0;color:#7b8b96;font-size:11px;line-height:1.5; }
 .af-analysis-table { min-width:460px; }
-.af-analysis-table thead th:first-child,.af-analysis-order-heading,.af-analysis-order { width:68px;text-align:right; }
-.af-analysis-table thead th:nth-child(2) { width:auto; }
+.af-analysis-table thead th:first-child { width:auto; }
 .af-analysis-value-heading,.af-analysis-value { min-width:130px;text-align:right;white-space:nowrap; }
-.af-analysis-order { color:#81909b;font:10px var(--app-font-mono); }
 .af-analysis-value { color:#1c4352;font:11px var(--app-font-mono);font-weight:600; }
 .af-analysis-note { display:flex;align-items:center;gap:10px;padding:16px;color:#6f818c;font-size:11px;line-height:1.55; }
 .af-analysis-note svg { flex:0 0 auto;color:#318c89; }

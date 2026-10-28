@@ -141,14 +141,12 @@ function AnalysisTable({ table, period, year }: { table: FinanceAnalysisTable; p
       <div className="af-table-wrap">
         <table className="af-table af-analysis-table">
           <thead><tr>
-            <th scope="col" className="af-analysis-order-heading">Order</th>
             <th scope="col">Category</th>
             <th scope="col" className="af-analysis-value-heading">{periodLabel}</th>
           </tr></thead>
           <tbody>
             {table.rows.map((row) => (
               <tr key={`${table.id}-${row.order}`} data-testid={`row-analysis-${table.id}-${row.order}`}>
-                <td className="af-analysis-order">{row.order}</td>
                 <th scope="row">{row.label}</th>
                 <td className="af-analysis-value">{formatAnalysisValue(row, period)}</td>
               </tr>
