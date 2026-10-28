@@ -120,7 +120,6 @@ export function Searchable() {
             <div className="airline-picker-listbox" id="workbook-airline-options" role="listbox" aria-label="Airlines in the workbook">
               <div className="airline-picker-list-meta">
                 <span>Airlines in workbook</span>
-                <span>{filteredAirlines.length} matches</span>
               </div>
               {filteredAirlines.length ? filteredAirlines.map((name, index) => {
                 const isSelected = airline.toLocaleLowerCase() === name.toLocaleLowerCase();

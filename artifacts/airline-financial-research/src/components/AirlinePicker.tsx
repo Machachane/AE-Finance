@@ -121,7 +121,6 @@ export default function AirlinePicker({
         <div className="airline-picker-listbox" id={listboxId} role="listbox" aria-label="Airlines in the workbook">
           <div className="airline-picker-list-meta">
             <span>Airlines in workbook</span>
-            <span>{error ? 'Unavailable' : `${filteredAirlines.length} matches`}</span>
           </div>
           {loading ? (
             <div className="airline-picker-empty" role="status">Loading airline names from the workbook…</div>
