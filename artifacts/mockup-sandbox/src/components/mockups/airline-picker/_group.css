@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: 42 32% 96%;
+  --foreground: 204 28% 17%;
+  --border: 39 18% 85%;
+  --input: 39 18% 85%;
+  --card: 42 37% 99%;
+  --card-foreground: 204 28% 17%;
+  --primary: 176 44% 25%;
+  --primary-foreground: 42 32% 96%;
+  --secondary: 42 24% 91%;
+  --secondary-foreground: 204 28% 22%;
+  --muted: 40 19% 92%;
+  --muted-foreground: 205 12% 46%;
+  --accent: 37 62% 47%;
+  --accent-foreground: 42 32% 96%;
+  --destructive: 5 58% 47%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 176 44% 25%;
+  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-serif: 'Newsreader', Georgia, serif;
+  --app-font-mono: 'DM Mono', monospace;
+  --radius: 0.65rem;
+  --picker-navy: #1b3047;
+  --picker-teal: #249b94;
+  --picker-ink: #20374e;
+  --picker-muted: #71808c;
+  --picker-border: #d7e0e6;
+  --picker-surface: #ffffff;
+  --picker-page: #f7f9fa;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; width: 100%; }
+body { margin: 0; background: var(--picker-page); color: var(--picker-ink); font-family: var(--app-font-sans); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+
+.picker-preview {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 24px;
+  background: var(--picker-page);
+}
+.picker-card {
+  width: min(100%, 390px);
+  padding: 22px 20px 20px;
+  border: 1px solid #dfe6eb;
+  border-radius: 9px;
+  background: var(--picker-surface);
+  box-shadow: 0 5px 22px rgba(27, 48, 68, .045);
+}
+.picker-card-kicker {
+  color: #258c88;
+  font: 9px var(--app-font-mono);
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.picker-card-title {
+  margin: 8px 0 19px;
+  color: var(--picker-navy);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.field-label {
+  display: block;
+  margin: 18px 0 8px;
+  color: #344b60;
+  font-size: 11px;
+  font-weight: 700;
+}
+.airline-entry { display: block; }
+.text-input {
+  width: 100%;
+  border: 1px solid #d7e0e6;
+  border-radius: 5px;
+  padding: 10px 11px;
+  outline: none;
+  background: #fff;
+  color: var(--picker-ink);
+  font-size: 12px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.text-input:focus { border-color: var(--picker-teal); box-shadow: 0 0 0 3px rgba(36, 155, 148, .13); }
+.text-input::placeholder { color: #9ba8b3; }
+.picker-help { margin: 9px 0 0; color: #84929d; font-size: 10px; line-height: 1.5; }
+
+.airline-picker { position: relative; }
+.airline-picker-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid var(--picker-border);
+  border-radius: 5px;
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.airline-picker-control:focus-within,
+.airline-picker-control.is-open {
+  border-color: #249b94;
+  box-shadow: 0 0 0 3px rgba(36, 155, 148, .13);
+}
+.airline-picker-search-icon { flex: 0 0 auto; margin-left: 11px; color: #8798a6; }
+.airline-picker-control .text-input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  border: 0;
+  border-radius: 5px;
+  padding: 0 9px;
+  box-shadow: none;
+}
+.airline-picker-control .text-input:focus { border: 0; box-shadow: none; }
+.airline-picker-trigger {
+  display: grid;
+  flex: 0 0 34px;
+  place-items: center;
+  height: 31px;
+  margin-right: 3px;
+  border: 0;
+  border-left: 1px solid #e5ecef;
+  background: transparent;
+  color: #738694;
+}
+.airline-picker-trigger:hover { color: #197772; background: #f3faf9; }
+.airline-picker-chevron { transition: transform .16s ease; }
+.airline-picker-chevron.is-open { transform: rotate(180deg); }
+.airline-picker-listbox {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  max-height: 258px;
+  overflow-y: auto;
+  border: 1px solid #d7e0e6;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(20, 40, 58, .14);
+  padding: 5px;
+}
+.airline-picker-list-meta {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 9px 7px;
+  color: #8796a0;
+  font: 9px var(--app-font-mono);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.airline-picker-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 35px;
+  border: 0;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: transparent;
+  color: #4a5e70;
+  text-align: left;
+  font-size: 11px;
+}
+.airline-picker-option:hover,
+.airline-picker-option.is-active { background: #edf7f5; color: #197772; }
+.airline-picker-option.is-selected { font-weight: 700; }
+.airline-picker-empty { padding: 12px 10px; color: #7b8993; font-size: 11px; line-height: 1.5; }
+.picker-preview-caption { margin: 12px 0 0; color: #98a5ad; font: 9px var(--picker-mono); }

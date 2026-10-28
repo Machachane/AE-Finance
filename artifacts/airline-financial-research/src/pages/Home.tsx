@@ -3,6 +3,7 @@ import {
   AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, FileSpreadsheet,
   FileText, Info, LoaderCircle, Search, ShieldCheck,
 } from 'lucide-react';
+import AirlinePicker from '@/components/AirlinePicker';
 import SiteHeader from '@/components/SiteHeader';
 import {
   buildResearchCsvContent,
@@ -266,19 +267,13 @@ export default function Home() {
             <label className="field-label" htmlFor="airline-input">
               Airline
             </label>
-            <div className="airline-entry">
-              <input
-                id="airline-input"
-                className="text-input"
-                data-testid="input-airline"
-                list="workbook-airline-names"
-                value={airline}
-                onChange={(event) => setAirline(event.target.value)}
-                placeholder="Search an airline from the workbook"
-                aria-label="Airline"
-              />
-              <datalist id="workbook-airline-names">{workbookAirlines.map((name) => <option key={name} value={name} />)}</datalist>
-            </div>
+            <AirlinePicker
+              value={airline}
+              options={workbookAirlines}
+              loading={workbookLoading}
+              error={Boolean(workbookError)}
+              onChange={setAirline}
+            />
 
             <div className="field-label"><span>Financial years</span><span className="field-hint">Select one or both</span></div>
             <div className="year-toggle">
