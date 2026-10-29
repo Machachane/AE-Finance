@@ -135,7 +135,7 @@ function metricRecord(
   year: string,
   period: string,
   metric: string,
-): number | null {
+): FinancialRatioRecord | null {
   const rows = records.filter((record) =>
     record.airline === airline &&
     record.financialYear === year &&

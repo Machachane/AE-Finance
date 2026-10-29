@@ -101,10 +101,10 @@ export default function AirlineComparisonPage() {
       const initialPeriods = getAvailableComparisonPeriods(data, initialYear);
       const initialPeriod = initialPeriods.includes('YR') ? 'YR' : initialPeriods[0] ?? '';
       const initialScope = getComparisonScopes(data, names, initialYear, initialPeriod)[0]?.scope ?? '';
-      const comparableAirlines = names.filter((name) => getBasisOptions(data, name, initialYear, initialPeriod, initialScope).length > 0);
+      const comparableAirlines = names.filter((name) => getBasisOptions(data, name, initialYear, initialPeriod, initialScope).length === 1);
       setSelectedAirlines(comparableAirlines.slice(0, Math.min(4, comparableAirlines.length)));
       setYear(initialYear);
-      setClassificationError(classificationData.error ?? '');
+      setClassificationError('error' in classificationData ? classificationData.error ?? '' : '');
       setLoading(false);
     }).catch((loadError: unknown) => {
       if (!active) return;
@@ -125,6 +125,7 @@ export default function AirlineComparisonPage() {
     values: [...new Set(verifiedClassifications.map((entry) => entry[field]).filter((value): value is string => typeof value === 'string' && value.trim().length > 0))].sort((a, b) => a.localeCompare(b)),
   })).filter((facet) => facet.values.length > 0), [verifiedClassifications]);
   const classByAirline = useMemo(() => new Map(verifiedClassifications.map((entry) => [entry.airline, entry])), [verifiedClassifications]);
+  const classificationByAirline = useMemo(() => new Map(classifications.map((entry) => [entry.airline, entry])), [classifications]);
   const classificationMatchedAirlines = useMemo(() => airlines.filter((name) => {
     const metadata = classByAirline.get(name);
     return Object.entries(classificationFilters).every(([field, value]) =>
@@ -139,8 +140,8 @@ export default function AirlineComparisonPage() {
     [selectedAirlines, classificationMatchedAirlines],
   );
   const selectedClassificationCount = activeSelectedAirlines.filter((name) => classByAirline.has(name)).length;
-  const selectedVerifiedClassifications = activeSelectedAirlines
-    .map((name) => classByAirline.get(name))
+  const selectedClassificationRecords = activeSelectedAirlines
+    .map((name) => classificationByAirline.get(name))
     .filter((entry): entry is Classification => Boolean(entry));
   const scopes = useMemo(() => year && period ? getComparisonScopes(records, activeSelectedAirlines, year, period) : [], [records, activeSelectedAirlines, year, period]);
   useEffect(() => { if (!scopes.some((entry) => entry.scope === scope)) setScope(scopes[0]?.scope ?? ''); }, [scopes, scope]);
@@ -179,7 +180,7 @@ export default function AirlineComparisonPage() {
           <h1>Airline Comparison &amp; Benchmarking</h1>
           <p>Compare financial health on explicit reporting bases. Every unavailable value stays unavailable; no currency conversion is applied.</p>
         </div>
-        <div className="comparison-count"><span>WORKBOOK COVERAGE</span><strong>{records.length.toLocaleString()} rows</strong><small>{airlines.length || 142} airline names</small></div>
+        <div className="comparison-count"><span>WORKBOOK COVERAGE</span><strong>{records.length.toLocaleString()} rows</strong><small>{airlines.length.toLocaleString()} airline names</small></div>
       </header>
 
       <section className="comparison-controls panel" aria-label="Comparison controls">
@@ -193,7 +194,7 @@ export default function AirlineComparisonPage() {
             <div className="comparison-airline-list" role="group" aria-label="Select airlines">
               {filteredAirlines.map((name) => <label className="comparison-airline-option" key={name}>
                 <input type="checkbox" checked={selectedAirlines.includes(name)} onChange={() => toggleAirline(name)} data-testid={`checkbox-airline-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} />
-                <span>{name}</span>{classByAirline.has(name) ? <small className="class-verified">Verified</small> : <small>Unclassified / Needs Review</small>}
+                <span>{name}</span>{classByAirline.has(name) ? <small className="class-verified">Verified</small> : <small>{classificationByAirline.has(name) ? 'Needs Review' : 'Unclassified'}</small>}
               </label>)}
               {!filteredAirlines.length && <div className="comparison-no-match">No airline names match this search.</div>}
             </div>
@@ -223,14 +224,14 @@ export default function AirlineComparisonPage() {
         {classificationFacets.length === 0 && <div className="comparison-classification-unavailable" role="status">
           {classificationError || `Verified region, business model, airline type, size, ownership, or group metadata is not available. Classification filters are hidden; all ${airlines.length} airlines remain available for manual comparison.`}
         </div>}
-        {selectedVerifiedClassifications.length > 0 && <div className="comparison-classification-register">
-          <div className="comparison-classification-heading"><strong>Verified airline classifications</strong><span>{selectedVerifiedClassifications.length} selected · sources included</span></div>
+        {selectedClassificationRecords.length > 0 && <div className="comparison-classification-register">
+          <div className="comparison-classification-heading"><strong>Airline classification records</strong><span>{selectedClassificationRecords.length} selected · verification status and sources</span></div>
           <div className="comparison-classification-table-wrap">
             <table>
               <thead><tr><th>Airline</th><th>Region</th><th>Business model</th><th>Airline type</th><th>Airline size</th><th>Ownership</th><th>Airline group</th><th>Status</th><th>Source</th></tr></thead>
-              <tbody>{selectedVerifiedClassifications.map((entry) => <tr key={entry.airline}>
-                <th scope="row">{entry.airline}</th><td>{entry.region || 'Unclassified'}</td><td>{entry.businessModel || 'Unclassified'}</td><td>{entry.airlineType || 'Unclassified'}</td><td>{entry.airlineSize || 'Unclassified'}</td><td>{entry.ownership || 'Unclassified'}</td><td>{entry.airlineGroup || 'Unclassified'}</td><td>{entry.verificationStatus}</td>
-                <td>{entry.sourceUrl && <a href={entry.sourceUrl} target="_blank" rel="noreferrer" data-testid={`link-classification-source-${entry.airline.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>Source <ExternalLink size={11} /></a>}</td>
+              <tbody>{selectedClassificationRecords.map((entry) => <tr key={entry.airline}>
+                <th scope="row">{entry.airline}</th><td>{entry.region || 'Unclassified'}</td><td>{entry.businessModel || 'Unclassified'}</td><td>{entry.airlineType || 'Unclassified'}</td><td>{entry.airlineSize || 'Unclassified'}</td><td>{entry.ownership || 'Unclassified'}</td><td>{entry.airlineGroup || 'Unclassified'}</td><td>{entry.verificationStatus?.toLowerCase() === 'verified' && entry.sourceUrl ? 'Verified' : 'Needs Review'}</td>
+                <td>{entry.sourceUrl ? <a href={entry.sourceUrl} target="_blank" rel="noreferrer" data-testid={`link-classification-source-${entry.airline.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>Source <ExternalLink size={11} /></a> : 'No source link'}</td>
               </tr>)}</tbody>
             </table>
           </div>
