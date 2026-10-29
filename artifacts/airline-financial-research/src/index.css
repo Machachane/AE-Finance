@@ -426,6 +426,153 @@ button:focus-visible, a:focus-visible, input:focus-visible {
   .statement-downloads .export-button { padding:7px 6px;font-size:9px; }
 }
 
+/* Airline comparison — source-first peer benchmarking workspace */
+.comparison-page { max-width:1560px; padding-top:36px; }
+.comparison-heading { display:flex;align-items:flex-end;justify-content:space-between;gap:28px;margin:0 0 25px; }
+.comparison-heading .eyebrow { color:#238d8a; }
+.comparison-heading h1 { margin:9px 0 9px;color:#152b43;font-size:clamp(32px,4vw,45px);line-height:1.08;letter-spacing:-.045em;font-weight:650; }
+.comparison-heading p { max-width:760px;margin:0;color:#687787;font-size:13px;line-height:1.65; }
+.comparison-count { flex:0 0 175px;padding:10px 13px;border-left:2px solid #32a7a0;background:#eff6f6;display:flex;flex-direction:column;gap:3px; }
+.comparison-count span { color:#258c88;font:9px var(--app-font-mono);letter-spacing:.12em; }
+.comparison-count strong { color:#203b53;font-size:15px; }
+.comparison-count small { color:#82909b;font-size:10px; }
+.comparison-controls { padding:18px 20px 0;margin-bottom:25px; }
+.comparison-controls-top { display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid #e8edf0; }
+.comparison-control-title { display:flex;align-items:center;gap:11px; }
+.comparison-control-title > svg { color:#218c89; }
+.comparison-control-title div { display:flex;flex-direction:column;gap:3px; }
+.comparison-control-title strong { color:#213b52;font-size:13px; }
+.comparison-control-title span { color:#7c8a96;font-size:10px; }
+.comparison-step { color:#8795a0;font:9px var(--app-font-mono);letter-spacing:.1em; }
+.comparison-control-grid { display:grid;grid-template-columns:minmax(280px,.9fr) minmax(360px,1.25fr);gap:24px;padding:17px 0; }
+.comparison-label-row { display:flex;justify-content:space-between;align-items:center;color:#344b60;font-size:11px;font-weight:700;margin-bottom:7px; }
+.comparison-label-row span { color:#81909b;font:9px var(--app-font-mono);font-weight:400; }
+.comparison-search { height:37px;display:flex;align-items:center;gap:8px;padding:0 10px;border:1px solid #d7e0e6;border-radius:5px;background:#fff;color:#8695a0; }
+.comparison-search:focus-within { border-color:#249b94;box-shadow:0 0 0 3px rgba(36,155,148,.12); }
+.comparison-search input { width:100%;border:0;outline:0;color:#20374e;font-size:11px; }
+.comparison-search input::placeholder { color:#9ba8b3; }
+.comparison-picker-actions { display:flex;justify-content:flex-end;gap:9px;padding:5px 0; }
+.comparison-picker-actions button { border:0;background:none;padding:2px;color:#21847f;font-size:10px;font-weight:650;text-decoration:underline;text-underline-offset:2px; }
+.comparison-airline-list { max-height:182px;overflow:auto;border:1px solid #e4eaed;border-radius:5px;background:#fbfcfd; }
+.comparison-airline-option { display:flex;align-items:center;gap:8px;min-height:31px;padding:5px 8px;border-bottom:1px solid #edf1f3;color:#334d62;font-size:10px;cursor:pointer; }
+.comparison-airline-option:last-child { border-bottom:0; }
+.comparison-airline-option:hover { background:#f1f8f7; }
+.comparison-airline-option input { accent-color:#188f89;flex:0 0 auto; }
+.comparison-airline-option span { flex:1; }
+.comparison-airline-option small { color:#9a7b39;font-size:8px;white-space:nowrap; }
+.comparison-airline-option small.class-verified { color:#27815d; }
+.comparison-no-match { padding:16px;color:#7c8a96;font-size:10px; }
+.comparison-period-controls { display:flex;flex-direction:column;justify-content:space-between; }
+.comparison-filter-grid { display:grid;grid-template-columns:.68fr .68fr 1.3fr;gap:11px; }
+.comparison-filter-grid .statement-field { gap:6px;font-size:10px; }
+.comparison-filter-grid .statement-field select { min-width:0;height:37px;font-size:10px; }
+.comparison-scope-note { display:flex;align-items:flex-start;gap:8px;margin-top:16px;padding:10px 11px;border:1px solid #dce9eb;background:#f3f8f8;color:#667d88;font-size:9px;line-height:1.5; }
+.comparison-scope-note svg { flex:0 0 auto;color:#278e88; }
+.comparison-selection-foot { min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e9eef0;color:#788895;font:9px var(--app-font-mono); }
+.comparison-selection-foot span:first-child { display:flex;align-items:center;gap:6px;color:#25877f; }
+.comparison-section-heading { display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin:0 0 12px; }
+.comparison-section-heading .eyebrow { display:block;margin-bottom:4px; }
+.comparison-section-heading h2 { margin:0;color:#1b3047;font-size:17px;letter-spacing:-.02em; }
+.comparison-section-heading > span,.comparison-rank-caption { color:#7b8b97;font-size:9px; }
+.comparison-rank-caption { display:flex;align-items:center;gap:6px; }
+.comparison-rank-caption svg { color:#258c88; }
+.comparison-basis-section { margin-bottom:28px; }
+.basis-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.basis-card { min-width:0;padding:13px 14px; }
+.basis-card-head { display:flex;align-items:center;gap:9px;margin-bottom:11px; }
+.basis-mark { display:grid;place-items:center;width:29px;height:29px;border:1px solid #d8e8e8;border-radius:4px;background:#f0f7f7;color:#238d88;font:12px var(--app-font-mono); }
+.basis-card-head > div { min-width:0;display:flex;flex-direction:column;gap:3px; }
+.basis-card-head strong { overflow:hidden;color:#28445a;font-size:11px;text-overflow:ellipsis;white-space:nowrap; }
+.basis-card-head small { color:#987531;font-size:9px; }
+.basis-card .statement-field { gap:5px;font-size:9px; }
+.basis-card .statement-field select { height:35px;font-size:10px; }
+.basis-single { min-height:34px;padding:8px 9px;border:1px solid #e7ecee;border-radius:4px;background:#f8fafb;color:#647887;font-size:9px;line-height:1.45; }
+.basis-warning { margin-top:8px;color:#987531;font-size:9px;line-height:1.45; }
+.comparison-results { margin-bottom:28px; }
+.comparison-rank-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px; }
+.comparison-rank-card { min-width:0;overflow:hidden; }
+.comparison-rank-card:last-child { grid-column:1/-1; }
+.comparison-rank-card > header { min-height:67px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #e8edf0;background:#fbfcfc; }
+.comparison-rank-card > header span { color:#268c87;font:9px var(--app-font-mono);letter-spacing:.1em;text-transform:uppercase; }
+.comparison-rank-card > header h3 { margin:4px 0 0;color:#203a51;font-size:13px; }
+.comparison-rank-card > header small { color:#7a8c98;font-size:8px;text-align:right; }
+.comparison-rank-meta { display:flex;align-items:center;gap:5px;padding:8px 13px;background:#f4f8f8;color:#83919a;font-size:9px; }
+.comparison-rank-meta strong { color:#426477;font:10px var(--app-font-mono); }
+.comparison-rank-card ol { list-style:none;padding:0;margin:0; }
+.comparison-rank-card li { display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:53px;padding:7px 12px;border-bottom:1px solid #edf1f3; }
+.comparison-rank-card li:last-child { border-bottom:0; }
+.rank-number { color:#28938d;font:11px var(--app-font-mono); }
+.rank-airline,.rank-value { display:flex;min-width:0;flex-direction:column;gap:3px; }
+.rank-airline strong { overflow:hidden;color:#345269;font-size:10px;text-overflow:ellipsis;white-space:nowrap; }
+.rank-airline small,.rank-value small { overflow:hidden;color:#87949e;font-size:8px;text-overflow:ellipsis;white-space:nowrap; }
+.rank-value { text-align:right; }
+.rank-value strong { color:#1d4857;font:12px var(--app-font-mono);white-space:nowrap; }
+.comparison-rank-empty { padding:17px 13px;color:#8b969d;font-size:10px; }
+.comparison-unavailable { padding:8px 12px;border-top:1px solid #e9eef0;color:#71818d;font-size:9px; }
+.comparison-unavailable summary,.comparison-evidence summary { display:flex;align-items:center;gap:5px;cursor:pointer;list-style:none; }
+.comparison-unavailable summary::-webkit-details-marker,.comparison-evidence summary::-webkit-details-marker { display:none; }
+.comparison-unavailable > div { padding:5px 0 0 10px; }
+.comparison-unavailable p { margin:5px 0;color:#788895;line-height:1.45; }
+.comparison-unavailable p strong { color:#526a7a; }
+.comparison-observations { margin:0 0 28px;padding:16px 18px; }
+.comparison-observation-head { display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #e9eef0; }
+.comparison-observation-head h2 { margin:4px 0 0;color:#1b3047;font-size:15px; }
+.comparison-observation-head > svg { color:#268f85; }
+.comparison-notes-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px;padding:14px 0 2px; }
+.comparison-notes-grid strong { color:#37556a;font-size:10px; }
+.comparison-notes-grid p { margin:5px 0 0;color:#71818d;font-size:9px;line-height:1.6; }
+.comparison-evidence-card { display:grid;grid-template-columns:170px minmax(0,1fr);gap:8px 14px;padding:13px 15px;margin-bottom:9px; }
+.comparison-evidence-card > strong { color:#345269;font-size:10px; }
+.comparison-evidence-card > span { color:#738492;font-size:9px; }
+.comparison-evidence-ratios { grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px; }
+.comparison-evidence { min-width:0;padding:8px;border:1px solid #e7edef;border-radius:4px;background:#fbfcfc;color:#687d8b;font-size:9px; }
+.comparison-evidence summary { justify-content:space-between;color:#39726f;font-weight:650; }
+.comparison-evidence-body { padding-top:6px; }
+.comparison-evidence-body p { margin:5px 0;color:#7c8b95;line-height:1.45; }
+.comparison-evidence-body p strong { color:#546b7a; }
+.comparison-source-line { display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid #edf1f3;color:#758691;line-height:1.4; }
+.comparison-source-line b { color:#526a7b; }
+.comparison-source-line a { display:inline-flex;align-items:center;gap:3px;flex:0 0 auto;color:#16827d;text-decoration:underline;text-underline-offset:2px; }
+.comparison-empty { min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center; }
+.comparison-empty strong { color:#28445a;font-size:13px; }
+.comparison-empty p { margin:6px 0 0;color:#7b8b96;font-size:10px; }
+.comparison-error { display:flex;align-items:center;gap:11px;margin:16px 0;padding:14px;border:1px solid #e8c9c3;border-radius:6px;background:#fff5f2;color:#9a5147; }
+.comparison-error > svg { flex:0 0 auto; }
+.comparison-error p { margin:3px 0 0;color:#8b625c;font-size:10px; }
+.comparison-error button { margin-left:auto;padding:7px 10px;border:1px solid #d9b7b0;border-radius:4px;background:#fff;color:#8e453d;font-size:10px;font-weight:700; }
+.comparison-loading { padding:22px;margin-bottom:20px; }
+.comparison-loading p { color:#82909a;font-size:10px; }
+.comparison-skeleton { display:grid;grid-template-columns:repeat(5,1fr);gap:9px; }
+.comparison-skeleton i { height:85px;border-radius:5px;background:linear-gradient(90deg,#edf1f2 25%,#f7f9f9 50%,#edf1f2 75%);background-size:200% 100%;animation:comparison-sheen 1.5s ease-in-out infinite; }
+@keyframes comparison-sheen { to { background-position:-200% 0; } }
+@media(max-width:1000px) {
+  .comparison-control-grid { grid-template-columns:1fr 1.15fr;gap:16px; }
+}
+@media(max-width:760px) {
+  .comparison-page { padding:27px 14px 40px; }
+  .comparison-heading { align-items:flex-start;flex-direction:column;gap:15px; }
+  .comparison-count { width:100%;flex-basis:auto; }
+  .comparison-control-grid { grid-template-columns:1fr; }
+  .comparison-filter-grid { grid-template-columns:1fr 1fr; }
+  .comparison-filter-grid .statement-field:last-child { grid-column:1/-1; }
+  .comparison-selection-foot { align-items:flex-start;flex-direction:column;justify-content:center;padding:9px 0; }
+  .basis-grid,.comparison-rank-grid,.comparison-notes-grid { grid-template-columns:1fr; }
+  .comparison-rank-card:last-child { grid-column:auto; }
+  .comparison-section-heading { align-items:flex-start;flex-direction:column; }
+  .comparison-evidence-card { grid-template-columns:1fr; }
+  .comparison-evidence-card > span { line-height:1.5; }
+  .comparison-evidence-ratios { grid-template-columns:1fr; }
+  .comparison-controls { padding:16px 14px 0; }
+  .comparison-controls-top { align-items:flex-start; }
+}
+@media(max-width:420px) {
+  .comparison-filter-grid { grid-template-columns:1fr; }
+  .comparison-filter-grid .statement-field:last-child { grid-column:auto; }
+  .comparison-rank-card > header { align-items:flex-start;flex-direction:column; }
+  .comparison-rank-card > header small { text-align:left; }
+  .comparison-rank-card li { grid-template-columns:21px minmax(0,1fr) auto;padding-inline:8px; }
+}
+
 /* Aviation finance leaderboards — compact, source-transparent research desk */
 .aviation-finance-page { max-width:1560px; padding-top:37px; }
 .af-heading { display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin:0 0 25px; }
