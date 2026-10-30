@@ -325,6 +325,35 @@ export function calculateRatioHistory(
     .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? '') || a.financialYear.localeCompare(b.financialYear) || PERIOD_ORDER.indexOf(a.reportingPeriod) - PERIOD_ORDER.indexOf(b.reportingPeriod));
 }
 
+export function buildRatioTrendPoints(
+  series: Array<{ key: string; history: RatioSnapshot[] }>,
+  ratioId: string,
+): Array<Record<string, string | number | null>> {
+  const points = new Map<string, Record<string, string | number | null>>();
+
+  for (const item of series) {
+    for (const snapshot of item.history) {
+      const pointKey = JSON.stringify([snapshot.financialYear, snapshot.reportingPeriod]);
+      const point = points.get(pointKey) ?? {
+        chartLabel: `FY ${snapshot.financialYear} · ${snapshot.reportingPeriod}`,
+        financialYear: snapshot.financialYear,
+        reportingPeriod: snapshot.reportingPeriod,
+      };
+      point[item.key] = snapshot.ratios.find((ratio) => ratio.id === ratioId)?.value ?? null;
+      points.set(pointKey, point);
+    }
+  }
+
+  for (const point of points.values()) {
+    for (const item of series) point[item.key] ??= null;
+  }
+
+  return [...points.values()].sort((a, b) => (
+    String(a.financialYear).localeCompare(String(b.financialYear), undefined, { numeric: true })
+    || PERIOD_ORDER.indexOf(String(a.reportingPeriod)) - PERIOD_ORDER.indexOf(String(b.reportingPeriod))
+  ));
+}
+
 export function getHealthSignals(snapshot: RatioSnapshot): Array<{ label: string; detail: string; tone: IndicatorTone }> {
   const signals: Array<{ label: string; detail: string; tone: IndicatorTone }> = [];
   const value = (id: string) => snapshot.ratios.find((ratio) => ratio.id === id)?.value ?? null;
