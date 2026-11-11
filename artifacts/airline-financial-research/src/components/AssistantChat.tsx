@@ -249,11 +249,11 @@ export default function AssistantChat() {
         onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-controls="assistant-panel"
-        aria-label={open ? 'Close finance assistant' : 'Open finance assistant'}
+        aria-label={open ? 'Close finance assistant' : 'Ask AE+ Assistant'}
         data-testid="assistant-launcher"
       >
         {open ? <X size={19} /> : messages.length ? <MessageCircle size={19} /> : <Sparkles size={19} />}
-        <span>{open ? 'Close' : 'Ask AI'}</span>
+        <span>{open ? 'Close' : 'Ask AE+ Assistant'}</span>
       </button>
     </div>
   );
