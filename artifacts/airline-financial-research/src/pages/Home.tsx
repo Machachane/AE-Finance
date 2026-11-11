@@ -207,9 +207,6 @@ export default function Home() {
     (activeGroup === 'All metrics' || metric.group === activeGroup) &&
     metric.name.toLowerCase().includes(metricSearch.toLowerCase()),
   ), [activeGroup, metricSearch]);
-  const verifiedCount = rows.filter((row) => row.verificationStatus === 'verified').length;
-  const unavailableCount = rows.filter((row) => row.verificationStatus === 'unavailable').length;
-  const reviewCount = rows.filter((row) => row.verificationStatus === 'needs_review').length;
   const isWorkbookReady = !workbookLoading && !workbookError;
 
   const toggleMetric = (metric: string) => setSelectedMetrics((selected) =>
@@ -337,11 +334,6 @@ export default function Home() {
               </div>
             </div>
             <div className="results-meta">
-              <div className="meta-summary">
-                <span className="summary-item">VERIFIED <strong>{verifiedCount}</strong></span>
-                <span className="summary-item">NEEDS REVIEW <strong>{reviewCount}</strong></span>
-                <span className="summary-item">UNAVAILABLE <strong>{unavailableCount}</strong></span>
-              </div>
               <span>{result ? `Generated ${new Date(result.generatedAt).toLocaleString()}` : 'No results yet'}</span>
             </div>
 
