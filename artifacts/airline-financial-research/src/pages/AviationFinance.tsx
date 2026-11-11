@@ -191,7 +191,27 @@ export default function AviationFinancePage() {
           || !analysis || !Array.isArray(analysis.tables) || !Array.isArray(analysis.periods)) {
           throw new Error('The supplied workbook data has an unexpected structure.');
         }
-        if (active) { setData({ ...payload, analysis }); setLoading(false); }
+        if (active) {
+          setData({ ...payload, analysis });
+          const params = new URLSearchParams(window.location.search);
+          const requestedYear = Number(params.get('year'));
+          const allRows = [...payload.mlas, ...payload.borrowers];
+          const availableYears = new Set([...allRows.map((row) => row.year), analysis.year]);
+          const nextYear = availableYears.has(requestedYear) ? requestedYear : 2026;
+          setYear(nextYear);
+          const availablePeriods = new Set([
+            ...allRows.filter((row) => row.year === nextYear).map((row) => row.reportingPeriod),
+            ...(nextYear === analysis.year ? analysis.periods : []),
+          ]);
+          const requestedPeriod = params.get('period');
+          if (requestedPeriod && availablePeriods.has(requestedPeriod)) {
+            setPeriod(requestedPeriod);
+          } else {
+            const preferred = nextYear === 2026 ? 'H1' : 'YR';
+            setPeriod(availablePeriods.has(preferred) ? preferred : PERIOD_ORDER.find((item) => availablePeriods.has(item)) ?? '');
+          }
+          setLoading(false);
+        }
       })
       .catch((reason: unknown) => {
         if (!active) return;

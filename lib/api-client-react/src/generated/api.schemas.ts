@@ -9,3 +9,31 @@ export interface HealthStatus {
   status: string;
 }
 
+export type AssistantChatMessageRole = typeof AssistantChatMessageRole[keyof typeof AssistantChatMessageRole];
+
+
+export const AssistantChatMessageRole = {
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface AssistantChatMessage {
+  role: AssistantChatMessageRole;
+  /** @maxLength 2000 */
+  content: string;
+}
+
+export interface AssistantChatRequest {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  message: string;
+  /** @maxItems 6 */
+  history?: AssistantChatMessage[];
+}
+
+export interface AssistantChatError {
+  error: string;
+}
+

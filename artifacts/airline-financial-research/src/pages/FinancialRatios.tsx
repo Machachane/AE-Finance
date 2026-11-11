@@ -184,6 +184,7 @@ export default function FinancialRatiosPage() {
   const [comparisonBasisKeys, setComparisonBasisKeys] = useState<Record<string, string>>({});
   const [basisKey, setBasisKey] = useState('');
   const [period, setPeriod] = useState(ALL_PERIODS);
+  const [deepLinkApplied, setDeepLinkApplied] = useState(false);
   const [selectedRatioId, setSelectedRatioId] = useState('ebitda-margin');
 
   useEffect(() => {
@@ -201,7 +202,28 @@ export default function FinancialRatiosPage() {
           throw new Error('Workbook data failed its row-count check.');
         }
         setRecords(data);
-        setAirline(data[0]?.airline ?? '');
+        const params = new URLSearchParams(window.location.search);
+        const requestedAirline = params.get('airline');
+        const matchedAirline = requestedAirline
+          ? [...new Set(data.map((record) => record.airline))].find((name) => name.toLocaleLowerCase() === requestedAirline.toLocaleLowerCase())
+          : undefined;
+        setAirline(matchedAirline ?? data[0]?.airline ?? '');
+        const requestedComparisons = new URLSearchParams(window.location.search)
+          .getAll('compare')
+          .map((name) => [...new Set(data.map((record) => record.airline))].find((available) => available.toLocaleLowerCase() === name.toLocaleLowerCase()))
+          .filter((name): name is string => Boolean(name) && name !== matchedAirline)
+          .slice(0, 2);
+        if (requestedComparisons.length) {
+          setComparedAirlines([...requestedComparisons, ...Array(Math.max(0, 2 - requestedComparisons.length)).fill('')]);
+        }
+        const requestedRatio = params.get('ratio');
+        if (requestedRatio && RATIO_DEFINITIONS.some((definition) => definition.id === requestedRatio)) {
+          setSelectedRatioId(requestedRatio);
+        }
+        const requestedPeriod = params.get('period');
+        if (requestedPeriod && data.some((record) => record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase())) {
+          setPeriod(data.find((record) => record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase())!.reportingPeriod);
+        }
         setLoading(false);
       })
       .catch((loadError: unknown) => {
@@ -269,6 +291,14 @@ export default function FinancialRatiosPage() {
   );
   const periodOptions = selectedAirlines.length > 1 && sharedPeriods.length ? sharedPeriods : periods;
   const hasSharedPeriod = selectedAirlines.length <= 1 || sharedPeriods.length > 0;
+  useEffect(() => {
+    if (deepLinkApplied || loading) return;
+    const requestedPeriod = new URLSearchParams(window.location.search).get('period');
+    if (requestedPeriod && !periodOptions.length) return;
+    const matchingPeriod = requestedPeriod && periodOptions.find((value) => value.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase());
+    if (matchingPeriod) setPeriod(matchingPeriod);
+    setDeepLinkApplied(true);
+  }, [deepLinkApplied, loading, periodOptions]);
   useEffect(() => {
     if (period !== ALL_PERIODS && !periodOptions.includes(period)) setPeriod(ALL_PERIODS);
   }, [period, periodOptions]);

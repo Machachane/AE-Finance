@@ -171,6 +171,23 @@ export default function Home() {
           throw new Error('Workbook data failed its row-count check.');
         }
         setWorkbookRecords(records);
+        const params = new URLSearchParams(window.location.search);
+        const requestedAirline = params.get('airline');
+        if (requestedAirline) {
+          const matchedAirline = [...new Set(records.map((record) => record.airline))]
+            .find((name) => name.toLocaleLowerCase() === requestedAirline.toLocaleLowerCase());
+          if (matchedAirline) setAirline(matchedAirline);
+        }
+        const requestedMetric = params.get('metric');
+        if (requestedMetric) {
+          const matchedMetric = METRICS.find((metric) => metric.name.toLocaleLowerCase() === requestedMetric.toLocaleLowerCase());
+          if (matchedMetric) setSelectedMetrics([matchedMetric.name]);
+        }
+        const availableYears = new Set(records.map((record) => record.financialYear));
+        const requestedYears = params.getAll('year').filter((year): year is '2025' | '2026' =>
+          (year === '2025' || year === '2026') && availableYears.has(year),
+        );
+        if (requestedYears.length) setYears([...new Set(requestedYears)].map(Number) as (2025 | 2026)[]);
         setWorkbookLoading(false);
       })
       .catch((error: unknown) => {

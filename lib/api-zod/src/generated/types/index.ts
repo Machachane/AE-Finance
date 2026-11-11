@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './assistantChatError';
+export * from './assistantChatMessage';
+export * from './assistantChatMessageRole';
+export * from './assistantChatRequest';
 export * from './healthStatus';

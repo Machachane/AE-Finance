@@ -6,21 +6,27 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
 
 import type {
+  AssistantChatError,
+  AssistantChatRequest,
   HealthStatus
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
-import type { ErrorType } from '../custom-fetch';
+import type { ErrorType , BodyType } from '../custom-fetch';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -123,4 +129,93 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getStreamFinanceAssistantUrl = () => {
+
+
+
+
+  return `/api/assistant/chat`
+}
+
+/**
+ * Classifies a natural-language question, retrieves or calculates from the loaded datasets, and streams a source-linked answer using server-sent events.
+ * @summary Ask a question about loaded finance data
+ */
+export const streamFinanceAssistant = async (assistantChatRequest: AssistantChatRequest, options?: Parameters<typeof customFetch>[1]): Promise<string> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<string>(getStreamFinanceAssistantUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(assistantChatRequest)
+  }
+);}
+
+
+
+
+
+export const getStreamFinanceAssistantMutationKey = () => ['streamFinanceAssistant'] as const;
+
+export const getStreamFinanceAssistantMutationOptions = <TError = ErrorType<AssistantChatError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof streamFinanceAssistant>>, TError,StreamFinanceAssistantMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof streamFinanceAssistant>>, TError,StreamFinanceAssistantMutationVariables, TContext> => {
+
+const mutationKey = getStreamFinanceAssistantMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof streamFinanceAssistant>>, StreamFinanceAssistantMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  streamFinanceAssistant(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StreamFinanceAssistantMutationResult = NonNullable<Awaited<ReturnType<typeof streamFinanceAssistant>>>
+    export type StreamFinanceAssistantMutationBody = BodyType<AssistantChatRequest>
+    export type StreamFinanceAssistantMutationError = ErrorType<AssistantChatError>
+    export type StreamFinanceAssistantMutationVariables = {data: BodyType<AssistantChatRequest>}
+
+    /**
+ * @summary Ask a question about loaded finance data
+ */
+export const useStreamFinanceAssistant = <TError = ErrorType<AssistantChatError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof streamFinanceAssistant>>, TError,StreamFinanceAssistantMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof streamFinanceAssistant>>,
+        TError,
+        StreamFinanceAssistantMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStreamFinanceAssistantMutationOptions(options));
+    }
 

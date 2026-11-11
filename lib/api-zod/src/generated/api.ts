@@ -17,3 +17,26 @@ export const HealthCheckResponse = zod.object({
 })
 
 
+/**
+ * Classifies a natural-language question, retrieves or calculates from the loaded datasets, and streams a source-linked answer using server-sent events.
+ * @summary Ask a question about loaded finance data
+ */
+export const streamFinanceAssistantBodyMessageMax = 2000;
+
+export const streamFinanceAssistantBodyHistoryItemContentMax = 2000;
+
+export const streamFinanceAssistantBodyHistoryMax = 6;
+
+
+
+export const StreamFinanceAssistantBody = zod.object({
+  "message": zod.string().min(1).max(streamFinanceAssistantBodyMessageMax),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['user', 'assistant']),
+  "content": zod.string().max(streamFinanceAssistantBodyHistoryItemContentMax)
+})).max(streamFinanceAssistantBodyHistoryMax).optional()
+})
+
+export const StreamFinanceAssistantResponse = zod.unknown()
+
+

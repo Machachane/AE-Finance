@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: assistant
+    description: Source-grounded finance assistant
 paths:
   /healthz:
     get:
@@ -24,6 +26,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /assistant/chat:
+    post:
+      operationId: streamFinanceAssistant
+      tags: [assistant]
+      summary: Ask a question about loaded finance data
+      description: Classifies a natural-language question, retrieves or calculates from the loaded datasets, and streams a source-linked answer using server-sent events.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssistantChatRequest"
+      responses:
+        "200":
+          description: Server-sent events containing answer text, sources, and an optional page navigation target.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "400":
+          description: Invalid or oversized question.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantChatError"
+        "429":
+          description: Too many requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantChatError"
+        "502":
+          description: The assistant could not complete the request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantChatError"
+        "503":
+          description: The assistant service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssistantChatError"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +78,37 @@ components:
           type: string
       required:
         - status
+    AssistantChatMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+          maxLength: 2000
+      required:
+        - role
+        - content
+    AssistantChatRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        history:
+          type: array
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/AssistantChatMessage"
+      required:
+        - message
+    AssistantChatError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 

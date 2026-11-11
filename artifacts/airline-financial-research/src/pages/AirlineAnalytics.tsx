@@ -239,6 +239,7 @@ export default function AirlineAnalyticsPage() {
   const [airline, setAirline] = useState('');
   const [basisKey, setBasisKey] = useState('');
   const [period, setPeriod] = useState('YR');
+  const [deepLinkApplied, setDeepLinkApplied] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -255,7 +256,23 @@ export default function AirlineAnalyticsPage() {
           throw new Error('Workbook data failed its 6,358-row integrity check.');
         }
         setRecords(data);
-        setAirline(initialAirlineWithComparableAnnualHistory(data));
+        const params = new URLSearchParams(window.location.search);
+        const requestedAirline = params.get('airline');
+        const matchedAirline = requestedAirline
+          ? [...new Set(data.map((record) => record.airline))].find((name) => name.toLocaleLowerCase() === requestedAirline.toLocaleLowerCase())
+          : undefined;
+        const nextAirline = matchedAirline ?? initialAirlineWithComparableAnnualHistory(data);
+        setAirline(nextAirline);
+        const requestedPeriod = params.get('period');
+        if (requestedPeriod && data.some((record) =>
+          record.airline === nextAirline
+          && record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase(),
+        )) {
+          setPeriod(data.find((record) =>
+            record.airline === nextAirline
+            && record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase(),
+          )!.reportingPeriod);
+        }
         setLoading(false);
       })
       .catch((loadError: unknown) => {
@@ -284,6 +301,14 @@ export default function AirlineAnalyticsPage() {
       .sort((a, b) => PERIOD_ORDER.indexOf(a) - PERIOD_ORDER.indexOf(b)),
     [basisRows],
   );
+  useEffect(() => {
+    if (deepLinkApplied || loading) return;
+    const requestedPeriod = new URLSearchParams(window.location.search).get('period');
+    if (requestedPeriod && !periods.length) return;
+    const matchingPeriod = requestedPeriod && periods.find((value) => value.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase());
+    if (matchingPeriod) setPeriod(matchingPeriod);
+    setDeepLinkApplied(true);
+  }, [deepLinkApplied, loading, periods]);
   useEffect(() => {
     if (!periods.includes(period)) setPeriod(periods.includes('YR') ? 'YR' : periods[periods.length - 1] ?? '');
   }, [periods, period]);

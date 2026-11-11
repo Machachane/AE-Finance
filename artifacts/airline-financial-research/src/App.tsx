@@ -8,6 +8,7 @@ import FinancialStatementsPage from '@/pages/Statements';
 import FinancialRatiosPage from '@/pages/FinancialRatios';
 import AirlineAnalyticsPage from '@/pages/AirlineAnalytics';
 import AviationFinancePage from '@/pages/AviationFinance';
+import AssistantChat from '@/components/AssistantChat';
 import {
   Route,
   Switch,
@@ -42,6 +43,7 @@ function App() {
     <TooltipProvider>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <Router />
+        <AssistantChat />
       </WouterRouter>
       <Toaster />
     </TooltipProvider>

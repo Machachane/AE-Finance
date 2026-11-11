@@ -200,7 +200,29 @@ export default function FinancialStatementsPage() {
           ...record,
           verificationStatus: 'needs_review',
         })));
-        setAirline(data[0]?.airline ?? '');
+        const params = new URLSearchParams(window.location.search);
+        const requestedAirline = params.get('airline');
+        const matchedAirline = requestedAirline
+          ? [...new Set(data.map((record) => record.airline))].find((name) => name.toLocaleLowerCase() === requestedAirline.toLocaleLowerCase())
+          : undefined;
+        const nextAirline = matchedAirline ?? data[0]?.airline ?? '';
+        setAirline(nextAirline);
+        const requestedYear = params.get('year');
+        if (requestedYear && data.some((record) => record.airline === nextAirline && record.financialYear === requestedYear)) {
+          setYear(requestedYear);
+        }
+        const requestedPeriod = params.get('period');
+        if (requestedPeriod && data.some((record) =>
+          record.airline === nextAirline
+          && (!requestedYear || record.financialYear === requestedYear)
+          && record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase(),
+        )) {
+          setPeriod(data.find((record) =>
+            record.airline === nextAirline
+            && (!requestedYear || record.financialYear === requestedYear)
+            && record.reportingPeriod.toLocaleLowerCase() === requestedPeriod.toLocaleLowerCase(),
+          )!.reportingPeriod);
+        }
         setLoading(false);
       })
       .catch((loadError: unknown) => {
