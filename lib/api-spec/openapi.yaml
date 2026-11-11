@@ -40,7 +40,7 @@ paths:
               $ref: "#/components/schemas/AssistantChatRequest"
       responses:
         "200":
-          description: Server-sent events containing answer text, sources, and an optional page navigation target.
+          description: "Server-sent events: delta contains content; result contains sources, navigation and context; done commits completion. An error event invalidates partial results."
           content:
             text/event-stream:
               schema:
@@ -102,6 +102,8 @@ components:
           maxItems: 6
           items:
             $ref: "#/components/schemas/AssistantChatMessage"
+        context:
+          $ref: "#/components/schemas/AssistantConversationContext"
       required:
         - message
     AssistantChatError:
@@ -109,6 +111,75 @@ components:
       properties:
         error:
           type: string
+        code:
+          type: string
+        context:
+          $ref: "#/components/schemas/AssistantConversationContext"
       required:
         - error
+    AssistantSelection:
+      type: object
+      additionalProperties: false
+      required: [airlines, financialYear, reportingPeriod]
+      properties:
+        airlines:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            maxLength: 160
+        financialYear:
+          type: [string, "null"]
+          maxLength: 160
+        reportingPeriod:
+          type: [string, "null"]
+          maxLength: 160
+    AssistantQueryPlan:
+      type: object
+      additionalProperties: false
+      required: [intent, airlines, metric, financialYear, reportingPeriod, ratioId, rankingType, tableId, rankLimit, trend, navigateTo]
+      properties:
+        intent:
+          type: string
+          enum: [metric_lookup, ratio_lookup, aviation_ranking, aviation_analysis, navigation, help, unsupported]
+        airlines:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+            maxLength: 160
+        metric:
+          type: [string, "null"]
+          maxLength: 160
+        financialYear:
+          type: [string, "null"]
+          maxLength: 160
+        reportingPeriod:
+          type: [string, "null"]
+          maxLength: 160
+        ratioId:
+          type: [string, "null"]
+          maxLength: 160
+        rankingType:
+          type: [string, "null"]
+          enum: [mlas, borrowers, capitalMarkets, commercial, null]
+        tableId:
+          type: [string, "null"]
+          maxLength: 160
+        rankLimit:
+          type: [integer, "null"]
+        trend:
+          type: boolean
+        navigateTo:
+          type: [string, "null"]
+          enum: [financials, statements, ratios, analytics, aviationFinance, null]
+    AssistantConversationContext:
+      type: object
+      additionalProperties: false
+      required: [selection]
+      properties:
+        selection:
+          $ref: "#/components/schemas/AssistantSelection"
+        request:
+          $ref: "#/components/schemas/AssistantQueryPlan"
 

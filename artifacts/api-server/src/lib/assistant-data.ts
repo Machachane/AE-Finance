@@ -310,7 +310,7 @@ function buildNavigation(
     ?? (page === 'ratios' && resolvedNames.length > 1 ? resolvedNames[0] : undefined)
     ?? (plan.airlines.length === 1 ? resolvedNames[0] : undefined);
 
-  if (airline) params.set('airline', airline);
+  if (airline && page !== 'aviationFinance') params.set('airline', airline);
   if (page === 'ratios' && resolvedNames.length > 1) {
     resolvedNames.slice(1, 3).forEach((name) => params.append('compare', name));
   }

@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Bot, ExternalLink, MessageCircle, Send, Sparkles, X } from 'lucide-react';
 import { useLocation } from 'wouter';
+import type { AssistantConversationContext } from '@workspace/api-client-react';
+import { AssistantStreamError, isAssistantContext, readAssistantStream } from '@/lib/assistant-stream';
 
 type Source = { label: string; url?: string };
 type Navigation = { label: string; href: string };
@@ -10,12 +12,9 @@ type ChatMessage = {
   content: string;
   sources?: Source[];
   navigation?: Navigation | null;
+  status?: 'pending' | 'complete' | 'failed';
+  question?: string;
 };
-type ServerEvent =
-  | { type: 'delta'; content: string }
-  | { type: 'result'; sources: Source[]; navigation: Navigation | null }
-  | { type: 'error'; message: string }
-  | { type: 'done' };
 
 const MAX_QUESTION_LENGTH = 2000;
 let messageSequence = 0;
@@ -23,16 +22,6 @@ let messageSequence = 0;
 function newId() {
   messageSequence += 1;
   return `assistant-message-${Date.now()}-${messageSequence}`;
-}
-
-function parseServerEvent(data: string): ServerEvent | null {
-  try {
-    const parsed: unknown = JSON.parse(data);
-    if (!parsed || typeof parsed !== 'object' || !('type' in parsed)) return null;
-    return parsed as ServerEvent;
-  } catch {
-    return null;
-  }
 }
 
 function renderAnswerLine(line: string) {
@@ -55,6 +44,11 @@ export default function AssistantChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageIdRef = useRef('');
   const abortRef = useRef<AbortController | null>(null);
+  // Kept outside routed pages: survives tab changes and the short history window,
+  // but is deliberately not persisted across conversations or browser reloads.
+  const contextRef = useRef<AssistantConversationContext>({
+    selection: { airlines: [], financialYear: null, reportingPeriod: null },
+  });
 
   useEffect(() => {
     const list = messageListRef.current;
@@ -86,7 +80,7 @@ export default function AssistantChat() {
     setInput('');
     setLoading(true);
     const history = messages
-      .filter((message) => message.content.trim())
+      .filter((message) => message.role === 'user' && message.content.trim())
       .slice(-6)
       .map(({ role, content }) => ({ role, content: content.slice(0, MAX_QUESTION_LENGTH) }));
     const assistantId = newId();
@@ -94,23 +88,25 @@ export default function AssistantChat() {
     setMessages((current) => [
       ...current,
       { id: newId(), role: 'user', content: question },
-      { id: assistantId, role: 'assistant', content: '' },
+      { id: assistantId, role: 'assistant', content: '', status: 'pending', question },
     ]);
 
     const controller = new AbortController();
     abortRef.current = controller;
+    const requestTimeout = setTimeout(() => controller.abort('timeout'), 70_000);
     try {
-      const response = await fetch('/api/assistant/chat', {
+      const response = await fetch(`${import.meta.env.BASE_URL}api/assistant/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-        body: JSON.stringify({ message: question, history }),
+        body: JSON.stringify({ message: question, history, context: contextRef.current }),
         signal: controller.signal,
       });
 
       if (!response.ok) {
         let message = 'The finance assistant is temporarily unavailable. Please try again.';
         try {
-          const body = await response.json() as { error?: string };
+          const body = await response.json() as { error?: string; context?: unknown };
+          if (isAssistantContext(body.context)) contextRef.current = body.context;
           if (body.error) message = body.error;
         } catch {
           // Keep the concise fallback for non-JSON errors.
@@ -119,49 +115,22 @@ export default function AssistantChat() {
       }
       if (!response.body) throw new Error('The assistant response stream was unavailable. Please try again.');
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let completed = false;
-      while (!completed) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
-        let separator = buffer.indexOf('\n\n');
-        while (separator >= 0) {
-          const block = buffer.slice(0, separator);
-          buffer = buffer.slice(separator + 2);
-          const data = block.split('\n')
-            .filter((line) => line.startsWith('data:'))
-            .map((line) => line.slice(5).trim())
-            .join('\n');
-          const serverEvent = parseServerEvent(data);
-          if (serverEvent?.type === 'delta') {
-            updateAssistantMessage((message) => ({ ...message, content: message.content + serverEvent.content }));
-          } else if (serverEvent?.type === 'result') {
-            updateAssistantMessage((message) => ({
-              ...message,
-              sources: serverEvent.sources,
-              navigation: serverEvent.navigation,
-            }));
-          } else if (serverEvent?.type === 'error') {
-            updateAssistantMessage((message) => ({ ...message, content: serverEvent.message }));
-          } else if (serverEvent?.type === 'done') {
-            completed = true;
-          }
-          separator = buffer.indexOf('\n\n');
-        }
-      }
-      if (!completed && !controller.signal.aborted) {
-        updateAssistantMessage((message) => message.content
-          ? message
-          : { ...message, content: 'The assistant response ended unexpectedly. Please try again.' });
-      }
+      const result = await readAssistantStream(response.body, (content) => {
+        updateAssistantMessage((message) => ({ ...message, content: message.content + content }));
+      });
+      contextRef.current = result.context;
+      updateAssistantMessage((message) => ({ ...message, ...result, status: 'complete' }));
     } catch (requestError) {
-      if (controller.signal.aborted) return;
-      const message = requestError instanceof Error ? requestError.message : 'The finance assistant is temporarily unavailable.';
-      updateAssistantMessage((assistantMessage) => ({ ...assistantMessage, content: message }));
+      if (controller.signal.aborted && controller.signal.reason !== 'timeout') return;
+      if (requestError instanceof AssistantStreamError && requestError.context) contextRef.current = requestError.context;
+      const message = controller.signal.reason === 'timeout'
+        ? 'The assistant took too long to respond. Your selections are retained; please retry.'
+        : requestError instanceof Error ? requestError.message : 'The finance assistant is temporarily unavailable.';
+      updateAssistantMessage((assistantMessage) => ({
+        ...assistantMessage, content: message, sources: [], navigation: null, status: 'failed',
+      }));
     } finally {
+      clearTimeout(requestTimeout);
       if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
     }
@@ -210,6 +179,12 @@ export default function AssistantChat() {
                       ? <span className="assistant-typing"><i /><i /><i /><span className="sr-only">Searching the loaded data</span></span>
                       : null}
                 </div>
+                {message.status === 'failed' && message.question && (
+                  <button className="assistant-open-page" type="button" disabled={loading}
+                    onClick={() => void submitQuestion(undefined, message.question)}>
+                    Retry question
+                  </button>
+                )}
                 {!!message.sources?.length && (
                   <div className="assistant-sources">
                     <span className="assistant-sources-title">Sources</span>

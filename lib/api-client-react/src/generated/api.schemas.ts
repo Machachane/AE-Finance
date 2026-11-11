@@ -23,6 +23,110 @@ export interface AssistantChatMessage {
   content: string;
 }
 
+export interface AssistantSelection {
+  /**
+     * @maxItems 4
+     * @items.maxLength 160
+     */
+  airlines: string[];
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  financialYear: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  reportingPeriod: string | null;
+}
+
+export type AssistantQueryPlanIntent = typeof AssistantQueryPlanIntent[keyof typeof AssistantQueryPlanIntent];
+
+
+export const AssistantQueryPlanIntent = {
+  metric_lookup: 'metric_lookup',
+  ratio_lookup: 'ratio_lookup',
+  aviation_ranking: 'aviation_ranking',
+  aviation_analysis: 'aviation_analysis',
+  navigation: 'navigation',
+  help: 'help',
+  unsupported: 'unsupported',
+} as const;
+
+/**
+ * @nullable
+ */
+export type AssistantQueryPlanRankingType = typeof AssistantQueryPlanRankingType[keyof typeof AssistantQueryPlanRankingType] | null;
+
+
+export const AssistantQueryPlanRankingType = {
+  mlas: 'mlas',
+  borrowers: 'borrowers',
+  capitalMarkets: 'capitalMarkets',
+  commercial: 'commercial',
+} as const;
+
+/**
+ * @nullable
+ */
+export type AssistantQueryPlanNavigateTo = typeof AssistantQueryPlanNavigateTo[keyof typeof AssistantQueryPlanNavigateTo] | null;
+
+
+export const AssistantQueryPlanNavigateTo = {
+  financials: 'financials',
+  statements: 'statements',
+  ratios: 'ratios',
+  analytics: 'analytics',
+  aviationFinance: 'aviationFinance',
+} as const;
+
+export interface AssistantQueryPlan {
+  intent: AssistantQueryPlanIntent;
+  /**
+     * @maxItems 4
+     * @items.maxLength 160
+     */
+  airlines: string[];
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  metric: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  financialYear: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  reportingPeriod: string | null;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  ratioId: string | null;
+  /** @nullable */
+  rankingType: AssistantQueryPlanRankingType;
+  /**
+     * @maxLength 160
+     * @nullable
+     */
+  tableId: string | null;
+  /** @nullable */
+  rankLimit: number | null;
+  trend: boolean;
+  /** @nullable */
+  navigateTo: AssistantQueryPlanNavigateTo;
+}
+
+export interface AssistantConversationContext {
+  selection: AssistantSelection;
+  request?: AssistantQueryPlan;
+}
+
 export interface AssistantChatRequest {
   /**
      * @minLength 1
@@ -31,9 +135,12 @@ export interface AssistantChatRequest {
   message: string;
   /** @maxItems 6 */
   history?: AssistantChatMessage[];
+  context?: AssistantConversationContext;
 }
 
 export interface AssistantChatError {
   error: string;
+  code?: string;
+  context?: AssistantConversationContext;
 }
 

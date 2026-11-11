@@ -5,7 +5,10 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { AssistantConversationContext } from './assistantConversationContext';
 
 export interface AssistantChatError {
   error: string;
+  code?: string;
+  context?: AssistantConversationContext;
 }

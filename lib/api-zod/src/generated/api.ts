@@ -27,6 +27,28 @@ export const streamFinanceAssistantBodyHistoryItemContentMax = 2000;
 
 export const streamFinanceAssistantBodyHistoryMax = 6;
 
+export const streamFinanceAssistantBodyContextSelectionAirlinesItemMax = 160;
+
+export const streamFinanceAssistantBodyContextSelectionAirlinesMax = 4;
+
+export const streamFinanceAssistantBodyContextSelectionFinancialYearMax = 160;
+
+export const streamFinanceAssistantBodyContextSelectionReportingPeriodMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestAirlinesItemMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestAirlinesMax = 4;
+
+export const streamFinanceAssistantBodyContextRequestMetricMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestFinancialYearMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestReportingPeriodMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestRatioIdMax = 160;
+
+export const streamFinanceAssistantBodyContextRequestTableIdMax = 160;
+
 
 
 export const StreamFinanceAssistantBody = zod.object({
@@ -34,7 +56,27 @@ export const StreamFinanceAssistantBody = zod.object({
   "history": zod.array(zod.object({
   "role": zod.enum(['user', 'assistant']),
   "content": zod.string().max(streamFinanceAssistantBodyHistoryItemContentMax)
-})).max(streamFinanceAssistantBodyHistoryMax).optional()
+})).max(streamFinanceAssistantBodyHistoryMax).optional(),
+  "context": zod.object({
+  "selection": zod.object({
+  "airlines": zod.array(zod.string().max(streamFinanceAssistantBodyContextSelectionAirlinesItemMax)).max(streamFinanceAssistantBodyContextSelectionAirlinesMax),
+  "financialYear": zod.string().max(streamFinanceAssistantBodyContextSelectionFinancialYearMax).nullable(),
+  "reportingPeriod": zod.string().max(streamFinanceAssistantBodyContextSelectionReportingPeriodMax).nullable()
+}),
+  "request": zod.object({
+  "intent": zod.enum(['metric_lookup', 'ratio_lookup', 'aviation_ranking', 'aviation_analysis', 'navigation', 'help', 'unsupported']),
+  "airlines": zod.array(zod.string().max(streamFinanceAssistantBodyContextRequestAirlinesItemMax)).max(streamFinanceAssistantBodyContextRequestAirlinesMax),
+  "metric": zod.string().max(streamFinanceAssistantBodyContextRequestMetricMax).nullable(),
+  "financialYear": zod.string().max(streamFinanceAssistantBodyContextRequestFinancialYearMax).nullable(),
+  "reportingPeriod": zod.string().max(streamFinanceAssistantBodyContextRequestReportingPeriodMax).nullable(),
+  "ratioId": zod.string().max(streamFinanceAssistantBodyContextRequestRatioIdMax).nullable(),
+  "rankingType": zod.union([zod.literal('mlas'),zod.literal('borrowers'),zod.literal('capitalMarkets'),zod.literal('commercial'),zod.literal(null)]).nullable(),
+  "tableId": zod.string().max(streamFinanceAssistantBodyContextRequestTableIdMax).nullable(),
+  "rankLimit": zod.number().int().nullable(),
+  "trend": zod.boolean(),
+  "navigateTo": zod.union([zod.literal('financials'),zod.literal('statements'),zod.literal('ratios'),zod.literal('analytics'),zod.literal('aviationFinance'),zod.literal(null)]).nullable()
+}).optional()
+}).optional()
 })
 
 export const StreamFinanceAssistantResponse = zod.unknown()

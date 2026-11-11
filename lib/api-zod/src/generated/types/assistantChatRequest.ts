@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { AssistantChatMessage } from './assistantChatMessage';
+import type { AssistantConversationContext } from './assistantConversationContext';
 
 export interface AssistantChatRequest {
   /**
@@ -15,4 +16,5 @@ export interface AssistantChatRequest {
   message: string;
   /** @maxItems 6 */
   history?: AssistantChatMessage[];
+  context?: AssistantConversationContext;
 }
