@@ -1,3 +1,5 @@
+export { groundAssistantFilters } from './assistant-filters';
+
 export type FinancialRecord = {
   airline: string;
   metric: string;
@@ -323,11 +325,15 @@ function buildNavigation(
   if (period && period !== undefined) params.set('period', period);
 
   if (page === 'aviationFinance') {
-    const availableRows = datasets.rankings.mlas.concat(datasets.rankings.borrowers);
+    const availableRows = datasets.rankings.mlas.concat(datasets.rankings.borrowers)
+      .concat(datasets.analysis.periods.map((reportingPeriod) => ({
+        name: '', totalUsdM: 0, numberOfDeals: 0, year: datasets.analysis.year, reportingPeriod,
+      })));
     const rankingYear = plan.financialYear && availableRows.some((row) => String(row.year) === plan.financialYear)
       ? plan.financialYear
       : null;
-    const rankingPeriod = plan.reportingPeriod && availableRows.some((row) => row.reportingPeriod === plan.reportingPeriod)
+    const rankingPeriod = plan.reportingPeriod && availableRows.some((row) =>
+      (!rankingYear || String(row.year) === rankingYear) && row.reportingPeriod === plan.reportingPeriod)
       ? plan.reportingPeriod
       : null;
     params.delete('year');
@@ -895,11 +901,59 @@ function answerAviationAnalysis(plan: AssistantPlan, datasets: AssistantDatasets
   return answerWithSources(`**${table.title} — FY${analysis.year} ${period}**\n${lines.join('\n')}\nSource workbook: ${analysis.sourceFile}${citation ? ` ${citation}` : ''}.`, registry, resultNavigation);
 }
 
-function answerNavigation(plan: AssistantPlan, navigation?: AssistantNavigation) {
+function answerNavigation(plan: AssistantPlan, datasets: AssistantDatasets) {
+  const page = defaultNavigationPage(plan);
+  if (page && page !== 'aviationFinance') {
+    if (!plan.airlines.length) return clarification('Which airline would you like to select on that page?');
+    const resolved = resolveAirlines(plan.airlines, datasets.financials);
+    if (resolved.some((name) => !name)) {
+      return clarification('I could not match the requested airline to the loaded dataset. Please use its exact name from the airline selector.');
+    }
+    if (plan.airlines.length > (page === 'ratios' ? 3 : 1)) {
+      return clarification(page === 'ratios' ? 'Please select up to three airlines.' : 'Which single airline should I select on that page?');
+    }
+    const rows = datasets.financials.filter((row) => resolved.includes(row.airline));
+    if (plan.financialYear && !rows.some((row) => row.financialYear === plan.financialYear)) {
+      return clarification(`No matching financial year is available for ${resolved.join(', ')}. Available years: ${unique(rows.map((row) => row.financialYear)).join(', ')}.`);
+    }
+    const yearRows = rows.filter((row) => !plan.financialYear || row.financialYear === plan.financialYear);
+    if (plan.reportingPeriod && resolved.some((name) => !yearRows.some((row) =>
+      row.airline === name && normalize(row.reportingPeriod) === normalize(plan.reportingPeriod!)))) {
+      return clarification(`The requested reporting period is not available for every selected airline in that year. Available periods: ${unique(yearRows.map((row) => row.reportingPeriod)).join(', ')}.`);
+    }
+    if (page === 'statements') {
+      const years = unique(rows.map((row) => row.financialYear));
+      if (!plan.financialYear && years.length > 1) return clarification(`Which financial year should I select for ${resolved[0]}? Available years: ${years.join(', ')}.`);
+      const nextYear = plan.financialYear ?? years[0]!;
+      const periods = unique(rows.filter((row) => row.financialYear === nextYear).map((row) => row.reportingPeriod));
+      if (!plan.reportingPeriod && periods.length > 1) return clarification(`Which reporting period should I select for ${resolved[0]} FY${nextYear}? Available periods: ${periods.join(', ')}.`);
+      plan = { ...plan, financialYear: nextYear, reportingPeriod: plan.reportingPeriod ?? periods[0]! };
+    }
+  }
+  if (page === 'aviationFinance') {
+    const available = datasets.rankings.mlas.concat(datasets.rankings.borrowers)
+      .map((row) => ({ year: String(row.year), period: row.reportingPeriod }))
+      .concat(datasets.analysis.periods.map((period) => ({ year: String(datasets.analysis.year), period })));
+    if (!available.some((row) => (!plan.financialYear || row.year === plan.financialYear)
+      && (!plan.reportingPeriod || row.period === plan.reportingPeriod))) {
+      return clarification('That year and reporting period combination is not available in Aviation Finance. Please choose a period listed on that page.');
+    }
+  }
+  const navigation = buildNavigation(plan, datasets);
   if (!navigation) {
     return clarification('Which platform page would you like to open? I can take you to Airline Financials, Financial Statements, Financial Ratios & KPIs, Airline Financial Analytics, or Aviation Finance.');
   }
-  return { answer: `Open **${navigation.label}** with the available filters selected.`, sources: [], navigation };
+  const params = new URL(navigation.href, 'https://platform.invalid').searchParams;
+  const selections = [
+    params.get('airline'),
+    ...params.getAll('compare'),
+    params.get('year') ? `FY${params.get('year')}` : null,
+    params.get('period'),
+  ].filter(Boolean);
+  const historyNote = (page === 'ratios' || page === 'analytics') && plan.financialYear
+    ? ` This page displays historical years, including FY${plan.financialYear}, rather than filtering to one year.`
+    : '';
+  return { answer: `Open **${navigation.label}**${selections.length ? ` for **${selections.join(' · ')}**` : ''}.${historyNote}`, sources: [], navigation };
 }
 
 export function normalizeAssistantPlan(value: unknown): AssistantPlan {
@@ -939,7 +993,7 @@ export function answerAssistantPlan(plan: AssistantPlan, datasets: AssistantData
     case 'aviation_analysis':
       return answerAviationAnalysis(plan, datasets, navigation);
     case 'navigation':
-      return answerNavigation(plan, navigation);
+      return answerNavigation(plan, datasets);
     case 'help':
       return clarification('Ask about a named airline’s reported metric or calculated KPI, historical trends, balance-sheet or profit-and-loss values, Aviation Finance rankings, or the loaded Finance Analysis tables. I use only the data already supplied to this platform and link the source workbook or official source when available.');
     case 'unsupported':

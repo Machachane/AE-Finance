@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   answerAssistantPlan,
   normalizeAssistantPlan,
+  groundAssistantFilters,
   type AssistantDatasets,
   type FinancialRecord,
 } from './assistant-data';
@@ -203,4 +204,117 @@ test('ratio navigation carries up to three selected airlines into the ratios tab
   assert.deepEqual(navigationUrl.searchParams.getAll('compare'), ['Example Jet', 'Example Airways']);
   assert.equal(navigationUrl.searchParams.get('period'), 'YR');
   assert.equal(navigationUrl.searchParams.get('ratio'), 'ebitda-margin');
+});
+
+test('the reported Emirates request repairs omitted or incorrect model filters', () => {
+  const data = datasets([
+    financialRow('Total Assets', 500, { airline: 'Air Busan' }),
+    financialRow('Total Assets', 1000, { airline: 'Emirates' }),
+  ]);
+  for (const airlines of [[], ['Air Busan']]) {
+    const plan = groundAssistantFilters(normalizeAssistantPlan({
+      intent: 'navigation', navigateTo: 'statements', airlines,
+    }), 'show me emirates balance sheet for fy2025', [], data);
+    const result = answerAssistantPlan(plan, data);
+    assert.equal(result.navigation?.href, '/statements?airline=Emirates&year=2025&period=YR');
+    assert.match(result.answer, /Emirates · FY2025 · YR/);
+    assert.doesNotMatch(result.answer, /Air Busan/);
+  }
+});
+
+test('a second named airline overrides the prior conversation and model selection', () => {
+  const data = datasets([
+    financialRow('Total Assets', 500, { airline: 'Air Busan' }),
+    financialRow('Total Assets', 1000, { airline: 'Emirates' }),
+  ]);
+  const result = answerAssistantPlan(groundAssistantFilters(normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'statements', airlines: ['Emirates'],
+  }), 'show Air Busan FY2025 YR instead', [
+    { role: 'user', content: 'show Emirates FY2025' },
+  ], data), data);
+  assert.equal(new URL(result.navigation!.href, 'https://app.test').searchParams.get('airline'), 'Air Busan');
+});
+
+test('same-airline follow-ups use the user message rather than an assistant mistake', () => {
+  const data = datasets([
+    financialRow('Total Assets', 500, { airline: 'Air Busan' }),
+    financialRow('Total Assets', 1000, { airline: 'Emirates' }),
+  ]);
+  const plan = groundAssistantFilters(normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'statements', airlines: ['Air Busan'],
+  }), 'show the same airline for FY2025', [
+    { role: 'user', content: 'show Emirates balance sheet' },
+    { role: 'assistant', content: 'Air Busan is selected' },
+  ], data);
+  assert.deepEqual(plan.airlines, ['Emirates']);
+});
+
+test('the chat grounding-to-answer pipeline preserves mixed known and unknown airlines', () => {
+  const data = datasets([financialRow('Total Assets', 1000, { airline: 'Emirates' })]);
+  const modelPlan = normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'statements',
+    airlines: ['Emirates', 'Unknown Airways'], financialYear: '2025',
+  });
+  const plan = groundAssistantFilters(modelPlan,
+    'show Emirates and Unknown Airways balance sheets for FY2025', [], data);
+  assert.deepEqual(plan.airlines, ['Emirates', 'Unknown Airways']);
+  const result = answerAssistantPlan(plan, data);
+  assert.equal(result.navigation, undefined);
+  assert.match(result.answer, /could not match the requested airline/);
+});
+
+test('unavailable navigation filters ask for clarification without an action', () => {
+  const data = datasets([financialRow('Total Assets', 1000)]);
+  for (const fields of [
+    { airlines: ['Unknown Airways'] },
+    { airlines: [] },
+    { financialYear: '2026' },
+    { reportingPeriod: 'Q1' },
+    { reportingPeriod: 'Q9' },
+  ]) {
+    const result = answerAssistantPlan(normalizeAssistantPlan({
+      intent: 'navigation', navigateTo: 'statements', airlines: ['Example Air'],
+      financialYear: '2025', ...fields,
+    }), data);
+    assert.equal(result.navigation, undefined);
+  }
+});
+
+test('ambiguous statement years or periods are not silently defaulted', () => {
+  const data = datasets([
+    financialRow('Total Assets', 1000),
+    financialRow('Total Assets', 800, { financialYear: '2026', reportingPeriod: 'H1' }),
+    financialRow('Total Assets', 900, { financialYear: '2026', reportingPeriod: 'YR' }),
+  ]);
+  for (const financialYear of [null, '2026']) {
+    const result = answerAssistantPlan(normalizeAssistantPlan({
+      intent: 'navigation', navigateTo: 'statements', airlines: ['Example Air'], financialYear,
+    }), data);
+    assert.equal(result.navigation, undefined);
+    assert.match(result.answer, /Which/);
+  }
+});
+
+test('an unavailable airline-year-period combination is rejected even if the period exists elsewhere', () => {
+  const data = datasets([
+    financialRow('Total Assets', 1000),
+    financialRow('Total Assets', 800, { financialYear: '2026', reportingPeriod: 'H1' }),
+  ]);
+  const result = answerAssistantPlan(normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'statements', airlines: ['Example Air'],
+    financialYear: '2025', reportingPeriod: 'H1',
+  }), data);
+  assert.equal(result.navigation, undefined);
+});
+
+test('Aviation Finance preserves analysis-only periods and rejects unavailable combinations', () => {
+  const data = datasets([]);
+  const result = answerAssistantPlan(normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'aviationFinance', financialYear: '2025', reportingPeriod: 'H2',
+  }), data);
+  assert.equal(result.navigation?.href, '/aviation-finance?year=2025&period=H2');
+  const unavailable = answerAssistantPlan(normalizeAssistantPlan({
+    intent: 'navigation', navigateTo: 'aviationFinance', financialYear: '2026', reportingPeriod: 'H2',
+  }), data);
+  assert.equal(unavailable.navigation, undefined);
 });

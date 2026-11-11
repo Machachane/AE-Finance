@@ -6,6 +6,7 @@ import {
   answerAssistantPlan,
   getAssistantCatalog,
   normalizeAssistantPlan,
+  groundAssistantFilters,
   type AssistantDatasets,
   type AssistantPlan,
 } from '../lib/assistant-data';
@@ -134,12 +135,13 @@ async function classifyQuestion(
     'Do not answer the user, calculate values, invent facts, or use outside knowledge.',
     'Return only one JSON object with keys: intent, airlines, metric, financialYear, reportingPeriod, ratioId, rankingType, tableId, rankLimit, trend, navigateTo.',
     'Valid intents: metric_lookup, ratio_lookup, aviation_ranking, aviation_analysis, navigation, help, unsupported.',
-    'Use only exact airline and metric labels from the catalog. If you cannot identify one exactly, use an empty airlines list or null metric.',
+    'Use exact airline and metric labels from the catalog. Preserve an explicitly requested unknown airline name in airlines so validation can ask for clarification; never substitute another airline.',
     'For airline comparisons, identify at most three exact airlines. Do not silently omit any airline when the user names more than three.',
     'Use exact financialYear and reportingPeriod values from the catalog. A missing value is null; never convert a year or period.',
     'ratioId must be one of the catalog ratio IDs or summaries. Map requests about financial health to health_summary, profitability to profitability_summary, and liquidity to liquidity_summary.',
     'rankingType must be mlas, borrowers, capitalMarkets, or commercial. Use aviation_analysis for a named analysis table.',
     'Set trend true only when the user asks for a trend or history. For navigation-only requests, use intent navigation and set navigateTo.',
+    'Navigation must retain all requested airlines, financialYear and reportingPeriod. “show me emirates balance sheet for fy2025” means navigation, statements, airlines ["Emirates"], financialYear "2025". Never drop filters just because the intent is navigation.',
     'Valid navigateTo values: financials, statements, ratios, analytics, aviationFinance. Otherwise null.',
     'Use prior messages only to resolve references such as “that airline” or “the same period”; ignore previous numeric answers.',
     'If the question needs a web lookup, unsupported airline classification, raw cross-currency ranking, or a fact absent from this app, use unsupported.',
@@ -211,7 +213,8 @@ router.post('/assistant/chat', async (req, res) => {
 
   try {
     const datasets = await loadDatasets();
-    const plan = await classifyQuestion(body.message, body.history, datasets, apiKey);
+    const modelPlan = await classifyQuestion(body.message, body.history, datasets, apiKey);
+    const plan = groundAssistantFilters(modelPlan, body.message, body.history, datasets);
     const answer = answerAssistantPlan(plan, datasets);
     res.status(200);
     res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');

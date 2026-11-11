@@ -13,15 +13,19 @@ import {
   Route,
   Switch,
   useLocation,
+  useSearch,
   Router as WouterRouter,
 } from 'wouter';
 
 function Router() {
+  const search = useSearch();
   return (
     // Keep a shared shell (sidebar, navbar) outside the boundary so it
     // survives a page crash.
     <RoutedErrorBoundary>
-      <Switch>
+      {/* Pages initialise validated filters after their dataset loads. A new
+          navigation must reapply them, including on the current tab. */}
+      <Switch key={search}>
         <Route path="/" component={AirlineResearchPage} />
         <Route path="/statements" component={FinancialStatementsPage} />
         <Route path="/ratios" component={FinancialRatiosPage} />

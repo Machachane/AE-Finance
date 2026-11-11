@@ -227,7 +227,11 @@ export default function AssistantChat() {
                     className="assistant-open-page"
                     type="button"
                     onClick={() => {
-                      setLocation(message.navigation!.href);
+                      // A fresh selection token also reapplies an identical link
+                      // after the user has manually changed the page's filters.
+                      const target = new URL(message.navigation!.href, window.location.origin);
+                      target.searchParams.set('_selection', newId());
+                      setLocation(`${target.pathname}${target.search}`);
                       setOpen(false);
                     }}
                   >
