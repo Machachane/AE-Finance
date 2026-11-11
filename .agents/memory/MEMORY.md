@@ -1,3 +1,4 @@
 - [Airline financial evidence](airline-financial-evidence.md) — publish only official-source values; flag incomplete metric mappings and missing disclosure instead of estimating.
 - [Airline Economics brand direction](airline-economics-brand.md) — use the supplied logo with navy and teal/green UI accents on a bright page.
 - [Assistant navigation](assistant-navigation.md) — explicitly apply verified chat selections; never silently leave a different default airline selected.
+- [Static hosting and chat](static-hosting-chat.md) — GitHub Pages needs an external assistant server; keep OpenRouter credentials off the frontend.

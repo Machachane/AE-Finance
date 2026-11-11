@@ -95,7 +95,9 @@ export default function AssistantChat() {
     abortRef.current = controller;
     const requestTimeout = setTimeout(() => controller.abort('timeout'), 70_000);
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}api/assistant/chat`, {
+      const endpoint = import.meta.env.VITE_ASSISTANT_API_URL?.trim()
+        || `${import.meta.env.BASE_URL}api/assistant/chat`;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         body: JSON.stringify({ message: question, history, context: contextRef.current }),
