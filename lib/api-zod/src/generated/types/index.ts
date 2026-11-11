@@ -16,4 +16,8 @@ export * from './assistantQueryPlanIntent';
 export * from './assistantQueryPlanNavigateTo';
 export * from './assistantQueryPlanRankingType';
 export * from './assistantSelection';
+export * from './feedbackError';
+export * from './feedbackInput';
+export * from './feedbackInputSection';
+export * from './feedbackReceipt';
 export * from './healthStatus';

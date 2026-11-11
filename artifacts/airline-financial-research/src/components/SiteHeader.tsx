@@ -1,5 +1,6 @@
 import { Link } from 'wouter';
-import { CircleHelp } from 'lucide-react';
+import { CircleHelp, MessageSquareText } from 'lucide-react';
+import { openFeedback } from '@/components/FeedbackDialog';
 
 type SiteHeaderProps = {
   activePage: 'research' | 'statements' | 'ratios' | 'analytics' | 'aviation-finance';
@@ -32,6 +33,9 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
           Aviation Finance
         </Link>
       </nav>
+      <button type="button" className="feedback-trigger" onClick={openFeedback} aria-haspopup="dialog" aria-label="Feedback" data-testid="button-open-feedback">
+        <MessageSquareText size={14} /><span>Feedback</span>
+      </button>
       <div className="top-right">
         <div className="source-indicator"><span className="source-dot" /><span>{status}</span></div>
         <CircleHelp size={16} aria-label="Help" />

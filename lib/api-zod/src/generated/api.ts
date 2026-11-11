@@ -9,6 +9,24 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Save private feedback about a platform section
+ */
+export const submitFeedbackBodyMessageMax = 5000;
+
+
+
+export const SubmitFeedbackBody = zod.object({
+  "section": zod.enum(['financials', 'statements', 'ratios', 'analytics', 'aviation-finance']),
+  "message": zod.string().min(1).max(submitFeedbackBodyMessageMax)
+})
+
+export const SubmitFeedbackResponse = zod.object({
+  "id": zod.string().uuid(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * Returns server health status
  * @summary Health check
  */

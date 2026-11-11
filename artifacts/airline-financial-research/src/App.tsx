@@ -9,6 +9,9 @@ import FinancialRatiosPage from '@/pages/FinancialRatios';
 import AirlineAnalyticsPage from '@/pages/AirlineAnalytics';
 import AviationFinancePage from '@/pages/AviationFinance';
 import AssistantChat from '@/components/AssistantChat';
+import FeedbackDialog from '@/components/FeedbackDialog';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 import {
   Route,
   Switch,
@@ -16,6 +19,8 @@ import {
   useSearch,
   Router as WouterRouter,
 } from 'wouter';
+
+const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
 
 function Router() {
   const search = useSearch();
@@ -44,13 +49,16 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 
 function App() {
   return (
+    <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <Router />
         <AssistantChat />
+        <FeedbackDialog />
       </WouterRouter>
       <Toaster />
     </TooltipProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -13,6 +13,41 @@ tags:
   - name: assistant
     description: Source-grounded finance assistant
 paths:
+  /feedback:
+    post:
+      operationId: submitFeedback
+      summary: Save private feedback about a platform section
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FeedbackInput"
+      responses:
+        "201":
+          description: Feedback saved privately
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackReceipt"
+        "400":
+          description: Invalid section or feedback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackError"
+        "429":
+          description: Too many submissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackError"
+        "503":
+          description: Feedback could not be saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedbackError"
   /healthz:
     get:
       operationId: healthCheck
@@ -71,6 +106,33 @@ paths:
                 $ref: "#/components/schemas/AssistantChatError"
 components:
   schemas:
+    FeedbackInput:
+      type: object
+      required: [section, message]
+      properties:
+        section:
+          type: string
+          enum: [financials, statements, ratios, analytics, aviation-finance]
+        message:
+          type: string
+          minLength: 1
+          maxLength: 5000
+    FeedbackReceipt:
+      type: object
+      required: [id, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+    FeedbackError:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
     HealthStatus:
       type: object
       properties:

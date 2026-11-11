@@ -35,6 +35,7 @@ jobs:
           # GitHub Pages only hosts static files. Keep the assistant and API key
           # on the published backend; this public URL is not a secret.
           VITE_ASSISTANT_API_URL: ${{ vars.VITE_ASSISTANT_API_URL || 'https://airline-financial-research.replit.app/api/assistant/chat' }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://airline-financial-research.replit.app' }}
       - run: cp artifacts/airline-financial-research/dist/public/index.html artifacts/airline-financial-research/dist/public/404.html
       - uses: actions/upload-pages-artifact@v3
         with:

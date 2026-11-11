@@ -5,6 +5,35 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type FeedbackInputSection = typeof FeedbackInputSection[keyof typeof FeedbackInputSection];
+
+
+export const FeedbackInputSection = {
+  financials: 'financials',
+  statements: 'statements',
+  ratios: 'ratios',
+  analytics: 'analytics',
+  'aviation-finance': 'aviation-finance',
+} as const;
+
+export interface FeedbackInput {
+  section: FeedbackInputSection;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  message: string;
+}
+
+export interface FeedbackReceipt {
+  id: string;
+  createdAt: string;
+}
+
+export interface FeedbackError {
+  error: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
