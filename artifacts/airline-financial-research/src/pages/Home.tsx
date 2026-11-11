@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  AlertCircle, ArrowDownToLine, BookOpen, ChevronDown, FileSpreadsheet,
+  AlertCircle, BookOpen, ChevronDown, FileSpreadsheet,
   FileText, Info, LoaderCircle, Search, ShieldCheck,
 } from 'lucide-react';
 import AirlinePicker from '@/components/AirlinePicker';
@@ -320,7 +320,7 @@ export default function Home() {
               <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
             <button className="run-button" type="button" onClick={runResearch} disabled={!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
-              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : <>Show financials <ArrowDownToLine size={15} /></>}
+              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : 'Show financials'}
             </button>
             <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
           </section>
