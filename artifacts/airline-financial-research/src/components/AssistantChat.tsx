@@ -152,7 +152,7 @@ export default function AssistantChat() {
           <header className="assistant-header">
             <span className="assistant-avatar"><Sparkles size={16} aria-hidden="true" /></span>
             <div className="assistant-heading">
-              <strong>Finance Assistant</strong>
+               <strong>AE+ Finance Assistant</strong>
               <span>Source-linked answers from platform data</span>
             </div>
             <button className="assistant-close" type="button" onClick={() => setOpen(false)} aria-label="Close assistant">
