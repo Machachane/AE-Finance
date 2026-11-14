@@ -188,7 +188,7 @@ table td, table th { border-color: var(--ae-line) !important; }
   transition: background .15s, border-color .15s;
 }
 .analytics-site-button:hover { background: #45e29c; border-color: #a0f4de; }
-.analytics-site-button svg { color: #08251a; opacity: 1; }
+.analytics-site-button svg { color: #08251a !important; stroke: #08251a; stroke-width: 2.5; opacity: 1; flex-shrink: 0; }
 .analytics-site-button:focus-visible { outline: 2px solid #a0f4de; outline-offset: 3px; }
 @media (max-width: 760px) {
   .analytics-shortcut-area { padding: 16px 12px 0; }
