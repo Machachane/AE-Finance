@@ -167,7 +167,7 @@ table td, table th { border-color: var(--ae-line) !important; }
 .analytics-shortcut-area {
   display: flex;
   justify-content: flex-end;
-  padding: 24px clamp(20px, 3vw, 48px) 0;
+  padding: 24px 24px 0;
 }
 .analytics-site-button {
   display: inline-flex;
