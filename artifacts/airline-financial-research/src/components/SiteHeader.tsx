@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { CircleHelp, MessageSquareText } from 'lucide-react';
+import { CircleHelp, ExternalLink, MessageSquareText } from 'lucide-react';
 import { openFeedback } from '@/components/FeedbackDialog';
 
 type SiteHeaderProps = {
@@ -33,6 +33,9 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
           Aviation Finance
         </Link>
       </nav>
+      <a className="analytics-site-button" href="https://analytics.machachane.com/" target="_blank" rel="noopener noreferrer" data-testid="link-ae-data-analytics">
+        AE+ Data Analytics <ExternalLink size={14} aria-hidden="true" />
+      </a>
       <button type="button" className="feedback-trigger" onClick={openFeedback} aria-haspopup="dialog" aria-label="Feedback" data-testid="button-open-feedback">
         <MessageSquareText size={14} /><span>Feedback</span>
       </button>
