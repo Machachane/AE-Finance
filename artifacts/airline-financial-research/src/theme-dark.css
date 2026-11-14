@@ -148,6 +148,30 @@ a.source-link, .statement-source, .assistant-panel a, [class*="link"]:not(.main-
 .assistant-message-user { background: var(--ae-teal) !important; color: #fff !important; }
 .assistant-message-user * { color: #fff !important; }
 .airline-picker-option.is-active, .airline-picker-option:hover { background: #1e3851 !important; color: #fff !important; }
+.airline-picker-control {
+  background-color: #0e1d2c !important;
+  overflow: hidden;
+}
+.airline-picker-control .text-input,
+.airline-picker-control .text-input:focus {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+.airline-picker-trigger {
+  align-self: stretch;
+  height: auto;
+  margin: 0;
+  background: transparent !important;
+  border-left-color: var(--ae-line-2);
+  color: var(--ae-text-2) !important;
+}
+.airline-picker-option { color: var(--ae-text-2); }
+.airline-picker-control:focus-within {
+  border-color: var(--ae-teal) !important;
+  box-shadow: 0 0 0 3px rgba(42,157,150,.2);
+}
 .af-bar-track, .analytics-composition-track, .ratio-skeleton-chart span, .analytics-loading-heading, .analytics-loading-cards i, .analytics-loading-chart { background: #1d3349 !important; }
 .statement-field, .feedback-field, label, [class*="label"] { color: var(--ae-text-2) !important; }
 .ratio-footnote, .ratio-health-foot, .ratio-category-label, .ratio-comparison-table .ratio-comparison-category th,
