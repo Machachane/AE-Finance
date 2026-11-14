@@ -36,7 +36,7 @@ import {
 
 const WORKBOOK_ROW_COUNT = 6358;
 const PERIOD_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2', '4M', '6M', '9M', '10M', '15M', 'YR'];
-const CHART_COLORS = ['#138b89', '#173b58', '#d77a44'];
+const CHART_COLORS = ['#2fc2b4', '#3b82e6', '#f07f33'];
 const CATEGORY_ORDER = ['Profitability', 'Returns', 'Leverage', 'Liquidity', 'Cost mix', 'Revenue mix'];
 
 function formatValue(value: number | null, format: RatioResult['format']) {
@@ -507,17 +507,17 @@ export default function FinancialRatiosPage() {
                       <div className="ratio-chart">
                         <ResponsiveContainer width="100%" height={274} debounce={0}>
                           <LineChart data={chartData} margin={{ top: 12, right: 16, bottom: 3, left: 0 }}>
-                            <CartesianGrid vertical={false} stroke="#e7edf0" strokeDasharray="3 4" />
-                            <XAxis dataKey="chartLabel" tick={{ fontSize: 10, fill: '#788a98' }} stroke="#d8e1e6" tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                            <CartesianGrid vertical={false} stroke="#24384d" strokeDasharray="3 4" />
+                            <XAxis dataKey="chartLabel" tick={{ fontSize: 10, fill: '#a9bccb' }} stroke="#2c4258" tickLine={false} axisLine={false} interval="preserveStartEnd" />
                             <YAxis
-                              tick={{ fontSize: 10, fill: '#788a98' }}
-                              stroke="#d8e1e6"
+                              tick={{ fontSize: 10, fill: '#a9bccb' }}
+                              stroke="#2c4258"
                               tickLine={false}
                               axisLine={false}
                               width={52}
                               tickFormatter={(value: number) => chartRatio.format === 'percent' ? `${value}%` : `${value.toFixed(1)}×`}
                             />
-                            <Tooltip content={<ChartTooltip format={chartRatio.format} />} isAnimationActive={false} cursor={{ stroke: '#9cafb8', strokeDasharray: '3 3' }} />
+                            <Tooltip content={<ChartTooltip format={chartRatio.format} />} isAnimationActive={false} cursor={{ stroke: '#5d7890', strokeDasharray: '3 3' }} />
                             {comparisonSeries.map((series, index) => (
                               <Line
                                 key={series.key}

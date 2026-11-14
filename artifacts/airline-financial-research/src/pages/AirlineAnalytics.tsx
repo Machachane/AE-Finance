@@ -37,10 +37,10 @@ type PeriodSnapshot = {
 
 const WORKBOOK_ROW_COUNT = 6358;
 const PERIOD_ORDER = ['Q1', 'Q2', 'Q3', 'Q4', 'H1', 'H2', '4M', '6M', '9M', '10M', '15M', 'YR'];
-const INK = '#18334b';
-const TEAL = '#168c87';
-const GOLD = '#bb8b45';
-const SLATE = '#8192a0';
+const INK = '#3b82e6';
+const TEAL = '#2fc2b4';
+const GOLD = '#f07f33';
+const SLATE = '#9fb2c4';
 
 const FINANCIAL_METRICS = {
   revenue: 'Total Revenue',
@@ -516,10 +516,10 @@ export default function AirlineAnalyticsPage() {
                     <div className="analytics-chart analytics-performance-chart">
                       <ResponsiveContainer width="100%" height={300} debounce={0}>
                         <LineChart data={performanceData} margin={{ top: 12, right: 18, bottom: 5, left: 0 }}>
-                          <CartesianGrid vertical={false} stroke="#e8edf0" strokeDasharray="3 4" />
-                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#788b98' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                          <YAxis tick={{ fontSize: 10, fill: '#788b98' }} axisLine={false} tickLine={false} width={54} tickFormatter={formatAxis} />
-                          <Tooltip content={<ChartTooltip currency={currency} unit={unit} />} isAnimationActive={false} cursor={{ stroke: '#aebdc5', strokeDasharray: '3 3' }} />
+                          <CartesianGrid vertical={false} stroke="#24384d" strokeDasharray="3 4" />
+                          <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#a9bccb' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 10, fill: '#a9bccb' }} axisLine={false} tickLine={false} width={54} tickFormatter={formatAxis} />
+                          <Tooltip content={<ChartTooltip currency={currency} unit={unit} />} isAnimationActive={false} cursor={{ stroke: '#5d7890', strokeDasharray: '3 3' }} />
                           {PERFORMANCE_LINES.map((line) => (
                             <Line key={line.metric} type="linear" dataKey={line.metric} name={line.label} stroke={line.color} strokeWidth={2.4} dot={{ r: 3, fill: line.color, stroke: '#fff', strokeWidth: 1.5 }} activeDot={{ r: 5 }} connectNulls={false} isAnimationActive={false} />
                           ))}
@@ -544,14 +544,14 @@ export default function AirlineAnalyticsPage() {
                     <div className="analytics-chart analytics-margin-chart">
                       <ResponsiveContainer width="100%" height={250} debounce={0}>
                         <LineChart data={marginData} margin={{ top: 12, right: 14, bottom: 4, left: 0 }}>
-                          <CartesianGrid vertical={false} stroke="#e8edf0" strokeDasharray="3 4" />
-                          <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#788b98' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                          <YAxis tick={{ fontSize: 10, fill: '#788b98' }} axisLine={false} tickLine={false} width={44} tickFormatter={(value: number) => `${value}%`} />
-                          <Tooltip content={<MarginTooltip />} isAnimationActive={false} cursor={{ stroke: '#aebdc5', strokeDasharray: '3 3' }} />
+                          <CartesianGrid vertical={false} stroke="#24384d" strokeDasharray="3 4" />
+                          <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#a9bccb' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                          <YAxis tick={{ fontSize: 10, fill: '#a9bccb' }} axisLine={false} tickLine={false} width={44} tickFormatter={(value: number) => `${value}%`} />
+                          <Tooltip content={<MarginTooltip />} isAnimationActive={false} cursor={{ stroke: '#5d7890', strokeDasharray: '3 3' }} />
                           <Line type="linear" dataKey="Operating margin" stroke={TEAL} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
                           <Line type="linear" dataKey="EBIT margin" stroke={GOLD} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
                           <Line type="linear" dataKey="EBITDA margin" stroke={INK} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
-                          <Line type="linear" dataKey="Net margin" stroke="#8b9eaa" strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
+                          <Line type="linear" dataKey="Net margin" stroke="#b28df0" strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -571,7 +571,7 @@ export default function AirlineAnalyticsPage() {
                       title="Trace the exact inputs behind margin trends"
                     />
                     <div className="analytics-margin-legend">
-                      <span><i style={{ background: TEAL }} />Operating</span><span><i style={{ background: GOLD }} />EBIT</span><span><i style={{ background: INK }} />EBITDA</span><span><i style={{ background: '#8b9eaa' }} />Net</span>
+                      <span><i style={{ background: TEAL }} />Operating</span><span><i style={{ background: GOLD }} />EBIT</span><span><i style={{ background: INK }} />EBITDA</span><span><i style={{ background: '#b28df0' }} />Net</span>
                     </div>
                   </section>
 

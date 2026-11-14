@@ -1,0 +1,163 @@
+/* AE Data Analytics dark navy theme — loaded after index.css, presentation only */
+:root {
+  --background: 210 45% 11%;
+  --foreground: 205 30% 92%;
+  --border: 210 30% 22%;
+  --input: 210 30% 24%;
+  --card: 210 42% 14%;
+  --card-foreground: 205 30% 92%;
+  --popover: 210 42% 14%;
+  --popover-foreground: 205 30% 92%;
+  --primary: 152 62% 52%;
+  --primary-foreground: 210 50% 10%;
+  --secondary: 210 35% 18%;
+  --secondary-foreground: 205 30% 90%;
+  --muted: 210 35% 18%;
+  --muted-foreground: 207 20% 68%;
+  --accent: 175 55% 38%;
+  --accent-foreground: 0 0% 98%;
+  --ring: 175 60% 45%;
+  --ae-bg: #0f1e2e;
+  --ae-panel: #13263a;
+  --ae-panel-2: #172d43;
+  --ae-stripe: #162a3e;
+  --ae-line: #24384d;
+  --ae-line-2: #2e4560;
+  --ae-text: #e3ecf3;
+  --ae-text-2: #b8c8d6;
+  --ae-muted: #8ea4b7;
+  --ae-teal: #2a9d96;
+  --ae-mint: #2fd18a;
+  --ae-mint-ink: #08251a;
+  --ae-link: #5fd3c7;
+  color-scheme: dark;
+}
+
+html, body, #root, .app-shell { background: var(--ae-bg) !important; color: var(--ae-text) !important; }
+
+/* Top bar & nav */
+.topbar { background: #0c1927 !important; border-bottom: 1px solid var(--ae-line) !important; box-shadow: none !important; }
+.main-menu-link { color: var(--ae-text-2) !important; }
+.main-menu-link:hover { background: rgba(255,255,255,.06) !important; color: #fff !important; }
+.main-menu-link.active { background: var(--ae-teal) !important; color: #fff !important; box-shadow: none !important; }
+
+/* Panels / surfaces: every light surface goes navy */
+.panel, [class*="-panel"]:not(.assistant-panel *), [class*="-card"], [class*="-board"],
+.af-controls, .feedback-dialog, .assistant-panel, [role="dialog"], [role="menu"], [role="listbox"],
+[data-radix-popper-content-wrapper] > *, .recharts-default-tooltip, [class*="tooltip"]:not(.recharts-tooltip-cursor) {
+  background-color: var(--ae-panel) !important;
+  border-color: var(--ae-line) !important;
+  color: var(--ae-text) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.28) !important;
+}
+.panel { box-shadow: none !important; }
+
+/* Headings & text */
+h1, h2, h3, h4, strong, .hero h1, .af-heading h1, .statements-hero h1 { color: var(--ae-text) !important; }
+p, label, .hero p, .af-heading p, .statements-hero p, td, li { color: var(--ae-text-2); }
+.eyebrow, .statement-kicker, .af-kicker, .af-heading-stamp span, [class*="kicker"] { color: var(--ae-link) !important; }
+[class*="muted"], [class*="hint"], [class*="meta"], [class*="foot"], [class*="note"], .step-number, small, .field-hint { color: var(--ae-muted) !important; }
+.hero::after { background: var(--ae-mint) !important; }
+
+/* Generic tinted boxes */
+[class*="caveat"], [class*="disclosure"], .boundary-note, .coverage, .results-meta, [class*="stamp"], [class*="intro"],
+.empty-icon, .af-filter-icon, .results-count, .af-limit, [class*="chip"], [class*="pill"], [class*="badge"]:not(.status-badge),
+[class*="summary"], [class*="welcome"], [class*="source-file"], [class*="sources"], [class*="privacy"] {
+  background-color: var(--ae-panel-2) !important;
+  border-color: var(--ae-line-2) !important;
+  color: var(--ae-text-2) !important;
+}
+
+/* Inputs */
+input, select, textarea, .text-input, .feedback-select, .feedback-textarea, [class*="composer"] input, [class*="composer"] textarea {
+  background-color: #0e1d2c !important;
+  border-color: var(--ae-line-2) !important;
+  color: var(--ae-text) !important;
+}
+input::placeholder, textarea::placeholder { color: #6f879b !important; }
+select option { background: #0e1d2c; color: var(--ae-text); }
+input:focus, select:focus, textarea:focus { border-color: var(--ae-teal) !important; box-shadow: 0 0 0 3px rgba(42,157,150,.25) !important; }
+select:disabled, input:disabled { color: #6f879b !important; background-color: #102031 !important; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--ae-mint); }
+
+/* Tabs & toggles */
+.category-tab, [role="tab"] { color: var(--ae-text-2) !important; background: transparent !important; }
+.category-tab.active, [role="tab"][data-state="active"], [class*="tab"].active, [class*="toggle"].active, [aria-pressed="true"], .year-option.selected {
+  background: var(--ae-teal) !important; border-color: var(--ae-teal) !important; color: #fff !important;
+}
+.year-option { background: #0e1d2c !important; border-color: var(--ae-line-2) !important; color: var(--ae-text-2) !important; }
+
+/* Buttons */
+.run-button, .feedback-primary, [class*="primary"]:is(button), .retry-button, [class*="send"] {
+  background: var(--ae-mint) !important; color: var(--ae-mint-ink) !important; border-color: var(--ae-mint) !important; box-shadow: none !important;
+}
+.run-button:hover:not(:disabled), .feedback-primary:hover { background: #45e29c !important; }
+.small-button, .export-button, .feedback-secondary, button[class*="secondary"], [class*="close"], .assistant-open-page {
+  background: var(--ae-panel-2) !important; border-color: var(--ae-line-2) !important; color: var(--ae-text-2) !important;
+}
+.small-button:hover, .export-button:hover:not(:disabled) { background: #1e3851 !important; color: #fff !important; }
+.finance-assistant > button, [class*="launcher"], [class*="fab"] { background: var(--ae-mint) !important; color: var(--ae-mint-ink) !important; }
+
+/* Tables */
+table th, .results-table th, .statement-table th, .af-table thead th {
+  background: #102236 !important; color: var(--ae-text-2) !important; border-color: var(--ae-line-2) !important;
+}
+table td, table tbody th { border-color: var(--ae-line) !important; color: var(--ae-text-2); background: transparent; }
+table tbody tr:nth-child(even) > * { background-color: var(--ae-stripe); }
+table tbody tr:hover > * { background-color: #1b3550 !important; }
+.metric-cell, .airline-cell, .amount-cell, table td strong { color: var(--ae-text) !important; }
+.metric-list, .statement-category-cell, .section-heading, .results-top, .af-board-head, .statement-panel-head, .footnote, .af-period-meta { border-color: var(--ae-line) !important; }
+.metric-item { color: var(--ae-text-2) !important; }
+.metric-item:hover { background: var(--ae-panel-2) !important; }
+
+/* Links & status */
+a.source-link, .statement-source, .assistant-panel a, [class*="link"]:not(.main-menu-link) { color: var(--ae-link) !important; text-decoration-color: rgba(95,211,199,.4) !important; }
+.status-verified { background: rgba(47,209,138,.14) !important; color: #4fe0a0 !important; }
+.status-unavailable { background: rgba(142,164,183,.14) !important; color: #a8bccb !important; }
+.status-needs_review { background: rgba(240,127,51,.15) !important; color: #f6a66b !important; }
+.error-box, .feedback-error, .assistant-inline-error { background: rgba(229,83,75,.12) !important; border-color: rgba(229,83,75,.4) !important; color: #ff9d94 !important; }
+.feedback-success { background: rgba(47,209,138,.12) !important; color: #6be3ad !important; }
+.loading-row::after, [class*="skeleton"] { background: #1d3349 !important; }
+
+/* Charts */
+.recharts-cartesian-axis-tick text { fill: #a9bccb !important; }
+.recharts-cartesian-grid line { stroke: var(--ae-line) !important; }
+.recharts-legend-item-text { color: var(--ae-text-2) !important; }
+.recharts-default-tooltip .recharts-tooltip-label, .recharts-tooltip-item { color: var(--ae-text) !important; }
+
+/* Assistant messages */
+.assistant-header { background: #0c1927 !important; border-color: var(--ae-line) !important; }
+.assistant-messages { background: var(--ae-bg) !important; }
+.assistant-message-content { color: var(--ae-text) !important; }
+.assistant-avatar, .assistant-welcome-icon { background: var(--ae-teal) !important; color: #fff !important; }
+
+/* Overlays */
+[data-state="open"][class*="fixed"][class*="inset-0"] { background: rgba(4,10,18,.72) !important; }
+
+/* Page-specific light surfaces */
+.analytics-heading-note, .ratio-heading-stamp, .af-heading-stamp, .analytics-selection-strip, .ratio-context-bar,
+.analytics-tooltip, .ratio-chart-tooltip, .ratio-download, .airline-entry, .airline-picker-control, .airline-picker-trigger,
+.airline-picker-listbox, .assistant-composer, .assistant-welcome button, .assistant-message, .analytics-step > span,
+.ratio-period-pill, .ratio-health-icon, .analytics-empty-mark, .ratio-empty-icon, .ratio-comparison-notice,
+.analytics-formula-note, .analytics-inline-empty, .analytics-disclosure, .ratio-skeleton-chart, .ratio-skeleton-table {
+  background-color: var(--ae-panel-2) !important; border-color: var(--ae-line-2) !important; color: var(--ae-text-2) !important;
+}
+.analytics-heading-note, .ratio-heading-stamp, .af-heading-stamp { border-left-color: var(--ae-teal) !important; }
+.analytics-heading-note strong, .ratio-heading-stamp strong, .af-heading-stamp strong, .analytics-selection-strip strong { color: var(--ae-text) !important; }
+.assistant-message-user { background: var(--ae-teal) !important; color: #fff !important; }
+.assistant-message-user * { color: #fff !important; }
+.airline-picker-option.is-active, .airline-picker-option:hover { background: #1e3851 !important; color: #fff !important; }
+.af-bar-track, .analytics-composition-track, .ratio-skeleton-chart span, .analytics-loading-heading, .analytics-loading-cards i, .analytics-loading-chart { background: #1d3349 !important; }
+.statement-field, .feedback-field, label, [class*="label"] { color: var(--ae-text-2) !important; }
+.ratio-footnote, .ratio-health-foot, .ratio-category-label, .ratio-comparison-table .ratio-comparison-category th,
+[class*="footnote"], [class*="category-cell"], [class*="-category"] th, tbody th {
+  background-color: var(--ae-panel-2) !important; color: var(--ae-muted) !important; border-color: var(--ae-line) !important;
+}
+table td, table th { border-color: var(--ae-line) !important; }
+.ratio-tone-positive { background: rgba(47,209,138,.14) !important; color: #4fe0a0 !important; }
+.ratio-tone-watch { background: rgba(240,127,51,.15) !important; color: #f6a66b !important; }
+.ratio-tone-attention { background: rgba(229,83,75,.15) !important; color: #ff9d94 !important; }
+.ratio-tone-neutral, .ratio-tone-unavailable { background: rgba(142,164,183,.14) !important; color: #a8bccb !important; }
+.af-table td, .af-table td * { color: var(--ae-text-2) !important; }
+.af-table td:nth-child(3), .af-table td [class*="value"], .af-table td [class*="amount"] { color: var(--ae-text) !important; }
+.af-heading h1 em, .ratio-heading h1 em, .analytics-heading h1 em { color: var(--ae-link) !important; }

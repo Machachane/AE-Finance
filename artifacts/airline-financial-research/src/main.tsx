@@ -5,6 +5,7 @@ import App from './App';
 import { ErrorBoundary } from '@/components/error-boundary';
 
 import './index.css';
+import './theme-dark.css';
 
 // Static deployments call the published backend. Other builds retain the
 // artifact's path prefix for generated API requests.
