@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "refresh-airline-financials": "python ./src/refresh_airline_financials.py",
+    "check-airline-financials": "python ./src/refresh_airline_financials.py --check",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
