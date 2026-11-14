@@ -177,7 +177,7 @@ table td, table th { border-color: var(--ae-line) !important; }
   flex-shrink: 0;
   min-height: 44px;
   padding: 0 20px;
-  border: 1px solid #5fd3c7;
+  border: 1px solid transparent;
   border-radius: 5px;
   background: #2fd18a;
   color: #08251a;
@@ -187,7 +187,7 @@ table td, table th { border-color: var(--ae-line) !important; }
   text-decoration: none;
   transition: background .15s, border-color .15s;
 }
-.analytics-site-button:hover { background: #45e29c; border-color: #a0f4de; }
+.analytics-site-button:hover { background: #45e29c; }
 .analytics-site-button svg { color: #08251a !important; stroke: #08251a; stroke-width: 2.5; opacity: 1; flex-shrink: 0; }
 .analytics-site-button:focus-visible { outline: 2px solid #a0f4de; outline-offset: 3px; }
 @media (max-width: 760px) {
