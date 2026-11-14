@@ -9,6 +9,7 @@ type SiteHeaderProps = {
 
 export default function SiteHeader({ activePage, status = 'Uploaded workbook · source-linked' }: SiteHeaderProps) {
   return (
+    <>
     <header className="topbar">
       <a className="brand" href={`${import.meta.env.BASE_URL}`} aria-label="Airline Financials home">
         <span className="brand-mark">
@@ -33,9 +34,6 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
           Aviation Finance
         </Link>
       </nav>
-      <a className="analytics-site-button" href="https://analytics.machachane.com/" target="_blank" rel="noopener noreferrer" data-testid="link-ae-data-analytics">
-        AE+ Data Analytics <ExternalLink size={14} aria-hidden="true" />
-      </a>
       <button type="button" className="feedback-trigger" onClick={openFeedback} aria-haspopup="dialog" aria-label="Feedback" data-testid="button-open-feedback">
         <MessageSquareText size={14} /><span>Feedback</span>
       </button>
@@ -44,5 +42,11 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
         <CircleHelp size={16} aria-label="Help" />
       </div>
     </header>
+    <div className="analytics-shortcut-area">
+      <a className="analytics-site-button" href="https://analytics.machachane.com/" target="_blank" rel="noopener noreferrer" data-testid="link-ae-data-analytics">
+        AE+ Data Analytics <ExternalLink size={16} aria-hidden="true" />
+      </a>
+    </div>
+    </>
   );
 }
