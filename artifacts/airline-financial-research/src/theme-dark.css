@@ -97,6 +97,7 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--ae-mint); }
 }
 .small-button:hover, .export-button:hover:not(:disabled) { background: #1e3851 !important; color: #fff !important; }
 .finance-assistant > button, [class*="launcher"], [class*="fab"] { background: var(--ae-mint) !important; color: var(--ae-mint-ink) !important; }
+.assistant-launcher svg { color: var(--ae-mint-ink); }
 
 /* Tables */
 table th, .results-table th, .statement-table th, .af-table thead th {
