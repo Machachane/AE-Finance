@@ -44,7 +44,7 @@ export default function SiteHeader({ activePage, status = 'Uploaded workbook · 
     </header>
     <div className="analytics-shortcut-area">
       <a className="analytics-site-button" href="https://app.machachane.com/" target="_blank" rel="noopener noreferrer" data-testid="link-ae-data-analytics">
-        AE+ Data Analytics <ExternalLink size={16} aria-hidden="true" />
+        Return to AE+ Data Analytics <ExternalLink size={16} aria-hidden="true" />
       </a>
     </div>
     </>
