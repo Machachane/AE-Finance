@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, BookOpen, ChevronDown, FileSpreadsheet,
-  FileText, Info, LoaderCircle, Search, ShieldCheck,
+  FileText, Info, LoaderCircle, Search,
 } from 'lucide-react';
 import AirlinePicker from '@/components/AirlinePicker';
 import SiteHeader from '@/components/SiteHeader';
@@ -47,7 +47,6 @@ const RESULT_METADATA_FIELDS: readonly ResultMetadataField[] = [
   { key: 'valueBasis', label: 'Value basis', compactHidden: true, value: (row) => row.valueBasis },
 ];
 
-const WORKBOOK_AIRLINE_COUNT = 142;
 const WORKBOOK_ROW_COUNT = 6358;
 
 const METRICS = [
@@ -183,7 +182,6 @@ export default function Home() {
   const [workbookResult, setWorkbookResult] = useState<{
     generatedAt: string;
     rows: FinancialResultRow[];
-    coverageNotes: string[];
   } | null>(null);
   const [airline, setAirline] = useState('');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([...DEFAULT_METRICS]);
@@ -292,15 +290,7 @@ export default function Home() {
         valueBasis: record.valueBasis,
         reportingEntity: record.reportingEntity,
       }));
-    const unmatchedAirline = !workbookAirlines.some((available) =>
-      available.toLocaleLowerCase() === selectedAirline,
-    );
-    const coverageNotes = [
-      `Imported from the supplied workbook: ${WORKBOOK_ROW_COUNT.toLocaleString()} source-linked rows across ${WORKBOOK_AIRLINE_COUNT} airline labels. These records have not been independently verified against every linked document; all are marked Needs review.`,
-      'The workbook includes derived values and links to third-party sources as well as company, exchange, and regulator publications. Review each source link, source note, and value basis before relying on an amount.',
-      ...(unmatchedAirline ? [`No exact airline-name match was found in the workbook for "${airline.trim()}". No parent or subsidiary match was inferred.`] : []),
-    ];
-    setWorkbookResult({ generatedAt: new Date().toISOString(), rows, coverageNotes });
+    setWorkbookResult({ generatedAt: new Date().toISOString(), rows });
   };
 
   return (
@@ -390,11 +380,6 @@ export default function Home() {
 
             {workbookError && <div className="error-box" role="alert" data-testid="status-workbook-error">
               <AlertCircle size={17} /><div><strong>Uploaded workbook data could not be loaded</strong><p>{workbookError}</p></div>
-            </div>}
-
-            {result && result.coverageNotes.length > 0 && <div className="coverage" data-testid="status-partial-coverage">
-              <ShieldCheck size={15} />
-              <div className="coverage-list"><strong>Coverage notes</strong>{result.coverageNotes.map((note, index) => <span key={`${index}-${note}`}>{note}</span>)}</div>
             </div>}
 
             {sharedResultFields.length > 0 && <section className="results-context" aria-label="Shared reporting details">
