@@ -357,12 +357,24 @@ export default function Home() {
             {rows.length > 0 && <div className="table-scroll">
               <table className="results-table">
                 <thead><tr>
-                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Source Link</th>
+                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th className="compact-hidden-column">FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th className="compact-hidden-column">Reporting Scope</th><th className="compact-hidden-column">IFRS16/ASC842 Adoption</th><th className="compact-hidden-column">In Administration</th><th className="compact-hidden-column">VALUE BASIS</th><th>Source Link</th><th className="compact-only-column">DETAILS</th>
                 </tr></thead>
                 <tbody>{rows.map((row, index) => <tr key={`${row.airline}-${row.metric}-${row.financialYear}-${index}`} data-testid={`row-research-${index}`}>
-                  <td className="metric-cell" data-label="Metric">{row.metric}</td><td className="airline-cell" data-label="Airline">{row.airline}</td><td data-label="Financial year">{row.financialYear || '—'}</td><td data-label="Reporting period">{row.reportingPeriod || '—'}</td><td data-label="Fiscal year-end">{row.fiscalYearEnd || '—'}</td><td data-label="Currency">{row.currency || '—'}</td><td data-label="Status">{row.status || '—'}</td>
-                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`} data-label="Amount">{formatAmount(row)}</td><td data-label="Date">{row.date || '—'}</td><td className="scope-cell" data-label="Reporting scope">{row.reportingScope || '—'}</td><td data-label="IFRS16/ASC842 Adoption">{row.ifrs16Asc842Adoption || '—'}</td><td data-label="In Administration">{row.inAdministration || '—'}</td><td data-label="Value basis">{row.valueBasis || '—'}</td>
+                  <td className="metric-cell" data-label="Metric">{row.metric}</td><td className="airline-cell" data-label="Airline">{row.airline}</td><td data-label="Financial year">{row.financialYear || '—'}</td><td data-label="Reporting period">{row.reportingPeriod || '—'}</td><td className="compact-hidden-column" data-label="Fiscal year-end">{row.fiscalYearEnd || '—'}</td><td data-label="Currency">{row.currency || '—'}</td><td data-label="Status">{row.status || '—'}</td>
+                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`} data-label="Amount">{formatAmount(row)}</td><td data-label="Date">{row.date || '—'}</td><td className="scope-cell compact-hidden-column" data-label="Reporting scope">{row.reportingScope || '—'}</td><td className="compact-hidden-column" data-label="IFRS16/ASC842 Adoption">{row.ifrs16Asc842Adoption || '—'}</td><td className="compact-hidden-column" data-label="In Administration">{row.inAdministration || '—'}</td><td className="compact-hidden-column" data-label="Value basis">{row.valueBasis || '—'}</td>
                   <td data-label="Source link">{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
+                  <td className="compact-only-column" data-label="Additional fields">
+                    <details className="result-extra-details">
+                      <summary>More</summary>
+                      <dl>
+                        <div><dt>Fiscal year-end</dt><dd>{row.fiscalYearEnd || '—'}</dd></div>
+                        <div><dt>Reporting scope</dt><dd>{row.reportingScope || '—'}</dd></div>
+                        <div><dt>IFRS16/ASC842 adoption</dt><dd>{row.ifrs16Asc842Adoption || '—'}</dd></div>
+                        <div><dt>In administration</dt><dd>{row.inAdministration || '—'}</dd></div>
+                        <div><dt>Value basis</dt><dd>{row.valueBasis || '—'}</dd></div>
+                      </dl>
+                    </details>
+                  </td>
                 </tr>)}</tbody>
               </table>
             </div>}
