@@ -278,51 +278,59 @@ export default function Home() {
           <section className="panel setup-panel" aria-label="Financial data selection">
             <div className="section-heading"><h2>Financial data selection</h2><span className="step-number">01 / INPUT</span></div>
 
-            <label className="field-label" htmlFor="airline-input">
-              Airline
-            </label>
-            <AirlinePicker
-              value={airline}
-              options={workbookAirlines}
-              loading={workbookLoading}
-              error={Boolean(workbookError)}
-              onChange={setAirline}
-            />
+            <div className="selection-controls">
+              <div className="selection-field">
+                <label className="field-label" htmlFor="airline-input">Airline</label>
+                <AirlinePicker
+                  value={airline}
+                  options={workbookAirlines}
+                  loading={workbookLoading}
+                  error={Boolean(workbookError)}
+                  onChange={setAirline}
+                />
+              </div>
 
-            <div className="field-label"><span>Financial years</span><span className="field-hint">Select one or both</span></div>
-            <div className="year-toggle">
-              {([2025, 2026] as const).map((year) => <label className={`year-option ${years.includes(year) ? 'selected' : ''}`} key={year}>
-                <input type="checkbox" checked={years.includes(year)} onChange={() => toggleYear(year)} data-testid={`checkbox-year-${year}`} /> FY {year}
-              </label>)}
-            </div>
+              <div className="selection-field">
+                <div className="field-label"><span>Financial years</span><span className="field-hint">Select one or both</span></div>
+                <div className="year-toggle">
+                  {([2025, 2026] as const).map((year) => <label className={`year-option ${years.includes(year) ? 'selected' : ''}`} key={year}>
+                    <input type="checkbox" checked={years.includes(year)} onChange={() => toggleYear(year)} data-testid={`checkbox-year-${year}`} /> FY {year}
+                  </label>)}
+                </div>
+              </div>
 
-            <div className="field-label">
-              <span>Financial metrics</span>
-              <div className="metric-tools">
-                <button className="small-button" type="button" onClick={() => setSelectedMetrics([...METRICS.map((metric) => metric.name)])} data-testid="button-select-all">All {METRICS.length}</button>
-                <button className="small-button" type="button" onClick={() => setSelectedMetrics([])} data-testid="button-clear-metrics">Clear</button>
+              <div className="selection-field metrics-selection">
+                <div className="field-label">
+                  <span>Financial metrics</span>
+                  <div className="metric-tools">
+                    <button className="small-button" type="button" onClick={() => setSelectedMetrics([...METRICS.map((metric) => metric.name)])} data-testid="button-select-all">All {METRICS.length}</button>
+                    <button className="small-button" type="button" onClick={() => setSelectedMetrics([])} data-testid="button-clear-metrics">Clear</button>
+                  </div>
+                </div>
+                <div className="search-wrap">
+                  <Search size={13} />
+                  <input className="text-input" type="search" value={metricSearch} onChange={(event) => setMetricSearch(event.target.value)} placeholder="Find a metric" aria-label="Search metrics" data-testid="input-metric-search" />
+                </div>
+                <div className="category-tabs" role="tablist" aria-label="Metric categories">
+                  {GROUPS.map((group) => <button type="button" role="tab" aria-selected={activeGroup === group} className={`category-tab ${activeGroup === group ? 'active' : ''}`} key={group} onClick={() => setActiveGroup(group)} data-testid={`tab-metric-${GROUPS.indexOf(group)}`}>{group}</button>)}
+                </div>
+                <div className="metric-list">
+                  {filteredMetrics.map((metric) => <label className="metric-item" key={metric.name}>
+                    <input type="checkbox" checked={selectedMetrics.includes(metric.name)} onChange={() => toggleMetric(metric.name)} data-testid={`checkbox-metric-${METRICS.indexOf(metric)}`} />
+                    <span>{metric.name}</span>
+                  </label>)}
+                  {filteredMetrics.length === 0 && <div className="metric-item">No metrics match this search.</div>}
+                </div>
+                <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
               </div>
             </div>
-            <div className="search-wrap">
-              <Search size={13} />
-              <input className="text-input" type="search" value={metricSearch} onChange={(event) => setMetricSearch(event.target.value)} placeholder="Find a metric" aria-label="Search metrics" data-testid="input-metric-search" />
-            </div>
-            <div className="category-tabs" role="tablist" aria-label="Metric categories">
-              {GROUPS.map((group) => <button type="button" role="tab" aria-selected={activeGroup === group} className={`category-tab ${activeGroup === group ? 'active' : ''}`} key={group} onClick={() => setActiveGroup(group)} data-testid={`tab-metric-${GROUPS.indexOf(group)}`}>{group}</button>)}
-            </div>
-            <div className="metric-list">
-              {filteredMetrics.map((metric) => <label className="metric-item" key={metric.name}>
-                <input type="checkbox" checked={selectedMetrics.includes(metric.name)} onChange={() => toggleMetric(metric.name)} data-testid={`checkbox-metric-${METRICS.indexOf(metric)}`} />
-                <span>{metric.name}</span>
-              </label>)}
-              {filteredMetrics.length === 0 && <div className="metric-item">No metrics match this search.</div>}
-            </div>
-              <div className="metric-footer"><span>{selectedMetrics.length} selected</span><span>{METRICS.length} available</span></div>
 
-            <button className="run-button" type="button" onClick={runResearch} disabled={!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
-              {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : 'Show financials'}
-            </button>
-            <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
+            <div className="selection-actions">
+              <button className="run-button" type="button" onClick={runResearch} disabled={!airline.trim() || !selectedMetrics.length || !years.length || !isWorkbookReady} data-testid="button-run-research">
+                {workbookLoading ? <><LoaderCircle size={15} className="spin" /> Loading workbook data</> : 'Show financials'}
+              </button>
+              <div className="boundary-note"><Info size={14} /><span>Imported workbook rows are supplied as-is, not independently verified. Some rows use third-party links or derived values; inspect the source link, source note, and value basis.</span></div>
+            </div>
           </section>
 
           <section className="panel results-panel" aria-label="Financial results">
@@ -352,9 +360,9 @@ export default function Home() {
                   <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th>FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th>Reporting Scope</th><th>IFRS16/ASC842 Adoption</th><th>In Administration</th><th>VALUE BASIS</th><th>Source Link</th>
                 </tr></thead>
                 <tbody>{rows.map((row, index) => <tr key={`${row.airline}-${row.metric}-${row.financialYear}-${index}`} data-testid={`row-research-${index}`}>
-                  <td className="metric-cell">{row.metric}</td><td className="airline-cell">{row.airline}</td><td>{row.financialYear || '—'}</td><td>{row.reportingPeriod || '—'}</td><td>{row.fiscalYearEnd || '—'}</td><td>{row.currency || '—'}</td><td>{row.status || '—'}</td>
-                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`}>{formatAmount(row)}</td><td>{row.date || '—'}</td><td className="scope-cell">{row.reportingScope || '—'}</td><td>{row.ifrs16Asc842Adoption || '—'}</td><td>{row.inAdministration || '—'}</td><td>{row.valueBasis || '—'}</td>
-                  <td>{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
+                  <td className="metric-cell" data-label="Metric">{row.metric}</td><td className="airline-cell" data-label="Airline">{row.airline}</td><td data-label="Financial year">{row.financialYear || '—'}</td><td data-label="Reporting period">{row.reportingPeriod || '—'}</td><td data-label="Fiscal year-end">{row.fiscalYearEnd || '—'}</td><td data-label="Currency">{row.currency || '—'}</td><td data-label="Status">{row.status || '—'}</td>
+                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`} data-label="Amount">{formatAmount(row)}</td><td data-label="Date">{row.date || '—'}</td><td className="scope-cell" data-label="Reporting scope">{row.reportingScope || '—'}</td><td data-label="IFRS16/ASC842 Adoption">{row.ifrs16Asc842Adoption || '—'}</td><td data-label="In Administration">{row.inAdministration || '—'}</td><td data-label="Value basis">{row.valueBasis || '—'}</td>
+                  <td data-label="Source link">{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
                 </tr>)}</tbody>
               </table>
             </div>}
