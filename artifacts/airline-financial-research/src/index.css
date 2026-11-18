@@ -1148,13 +1148,3 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 @media(max-width:420px) {
   .page { padding-inline:12px; }
 }
-
-/* Strengthen contrast for the dense financial-results grid. */
-.results-table th { color:#cbd8e3!important;font-size:9px; }
-.results-table td { color:#d3dfe9!important;font-size:11px; }
-.results-table .metric-cell,
-.results-table .airline-cell,
-.results-table .amount-cell { color:#f0f5f8!important; }
-.results-table .amount-cell { font-size:11px!important; }
-.results-table .muted-cell { color:#a9bdcc!important; }
-.results-table .source-link { font-size:11px; }
