@@ -437,7 +437,7 @@ export default function Home() {
               <div className="empty-inner"><div className="empty-icon"><BookOpen size={21} /></div><h3>Select an airline.</h3><p>Select an airline and the metrics and years you want to view. Workbook rows are source-linked and marked for review.</p></div>
             </div>}
 
-            <div className="footnote"><span>Financial amounts and exports retain the workbook’s original AMOUNT and CURRENCY values; no currency conversion is applied.</span><span>WORKBOOK FIELDS · {RESEARCH_EXPORT_COLUMNS.length}</span></div>
+            <div className="footnote"><span>Unless otherwise stated, all amounts are presented in the currency reported in the airline’s published/audited accounts.</span><span>WORKBOOK FIELDS · {RESEARCH_EXPORT_COLUMNS.length}</span></div>
           </section>
         </div>
       </main>
