@@ -171,7 +171,7 @@ test('financial tables and analytics read source amounts and retain their curren
   assert.ok(home.includes('amount: record.amount'));
   assert.ok(home.includes('currency: record.currency'));
   assert.ok(home.includes('formatAmount(row)'));
-  assert.ok(home.includes('{row.currency ||'));
+  assert.ok(home.includes("key: 'currency', label: 'Currency', value: (row) => row.currency"));
   assert.ok(statements.includes('{formatAmount(row)}'));
   assert.ok(statements.includes('{row.currency ||'));
   assert.ok(ratios.includes('record.amount'));

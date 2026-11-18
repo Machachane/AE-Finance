@@ -14,6 +14,38 @@ import {
 
 type FinancialResultRow = ResearchExportRow;
 type WorkbookRecord = Omit<FinancialResultRow, 'verificationStatus'>;
+type ResultMetadataKey =
+  | 'airline'
+  | 'financialYear'
+  | 'reportingPeriod'
+  | 'fiscalYearEnd'
+  | 'currency'
+  | 'status'
+  | 'date'
+  | 'reportingScope'
+  | 'ifrs16Asc842Adoption'
+  | 'inAdministration'
+  | 'valueBasis';
+type ResultMetadataField = {
+  key: ResultMetadataKey;
+  label: string;
+  compactHidden?: boolean;
+  value: (row: FinancialResultRow) => string | null | undefined;
+};
+
+const RESULT_METADATA_FIELDS: readonly ResultMetadataField[] = [
+  { key: 'airline', label: 'Airline', value: (row) => row.airline },
+  { key: 'financialYear', label: 'Financial year', value: (row) => row.financialYear },
+  { key: 'reportingPeriod', label: 'Reporting period', value: (row) => row.reportingPeriod },
+  { key: 'fiscalYearEnd', label: 'Fiscal year-end', compactHidden: true, value: (row) => row.fiscalYearEnd },
+  { key: 'currency', label: 'Currency', value: (row) => row.currency },
+  { key: 'status', label: 'Status', value: (row) => row.status },
+  { key: 'date', label: 'Date', value: (row) => row.date },
+  { key: 'reportingScope', label: 'Reporting scope', compactHidden: true, value: (row) => row.reportingScope },
+  { key: 'ifrs16Asc842Adoption', label: 'IFRS16/ASC842 adoption', compactHidden: true, value: (row) => row.ifrs16Asc842Adoption },
+  { key: 'inAdministration', label: 'In administration', compactHidden: true, value: (row) => row.inAdministration },
+  { key: 'valueBasis', label: 'Value basis', compactHidden: true, value: (row) => row.valueBasis },
+];
 
 const WORKBOOK_AIRLINE_COUNT = 142;
 const WORKBOOK_ROW_COUNT = 6358;
@@ -203,6 +235,17 @@ export default function Home() {
   );
   const result = workbookResult;
   const rows: FinancialResultRow[] = result?.rows ?? [];
+  const sharedResultFields = useMemo(() => RESULT_METADATA_FIELDS.flatMap((field) => {
+    if (!rows.length) return [];
+    const values = rows.map((row) => field.value(row)?.trim() ?? '');
+    const sharedValue = values[0];
+    return sharedValue && values.every((value) => value === sharedValue)
+      ? [{ key: field.key, label: field.label, value: sharedValue }]
+      : [];
+  }), [rows]);
+  const sharedResultKeys = new Set(sharedResultFields.map((field) => field.key));
+  const rowMetadataFields = RESULT_METADATA_FIELDS.filter((field) => !sharedResultKeys.has(field.key));
+  const compactMetadataFields = rowMetadataFields.filter((field) => field.compactHidden);
   const filteredMetrics = useMemo(() => METRICS.filter((metric) =>
     (activeGroup === 'All metrics' || metric.group === activeGroup) &&
     metric.name.toLowerCase().includes(metricSearch.toLowerCase()),
@@ -354,27 +397,35 @@ export default function Home() {
               <div className="coverage-list"><strong>Coverage notes</strong>{result.coverageNotes.map((note, index) => <span key={`${index}-${note}`}>{note}</span>)}</div>
             </div>}
 
+            {sharedResultFields.length > 0 && <section className="results-context" aria-label="Shared reporting details">
+              <h3>Shared reporting details</h3>
+              <dl className="results-context-strip">
+                {sharedResultFields.map((field) => <div className="results-context-item" key={field.key}>
+                  <dt>{field.label}</dt><dd>{field.value}</dd>
+                </div>)}
+              </dl>
+            </section>}
+
             {rows.length > 0 && <div className="table-scroll">
-              <table className="results-table">
+              <table className={`results-table ${rowMetadataFields.length === 0 ? 'results-table--shared-metadata' : ''}`}>
                 <thead><tr>
-                  <th>METRIC</th><th>AIRLINE</th><th>FINANCIAL YEAR</th><th>REPORTING PERIOD</th><th className="compact-hidden-column">FISCAL YEAR-END</th><th>CURRENCY</th><th>STATUS</th><th style={{ textAlign: 'right' }}>AMOUNT</th><th>DATE</th><th className="compact-hidden-column">Reporting Scope</th><th className="compact-hidden-column">IFRS16/ASC842 Adoption</th><th className="compact-hidden-column">In Administration</th><th className="compact-hidden-column">VALUE BASIS</th><th>Source Link</th><th className="compact-only-column">DETAILS</th>
+                  <th className="results-col-metric">METRIC</th>
+                  {rowMetadataFields.map((field) => <th key={field.key} className={`results-col-${field.key} ${field.compactHidden ? 'compact-hidden-column' : ''}`}>{field.label}</th>)}
+                  <th className="results-col-amount" style={{ textAlign: 'right' }}>AMOUNT</th>
+                  <th className="results-col-source">Source Link</th>
+                  {compactMetadataFields.length > 0 && <th className="compact-only-column">DETAILS</th>}
                 </tr></thead>
                 <tbody>{rows.map((row, index) => <tr key={`${row.airline}-${row.metric}-${row.financialYear}-${index}`} data-testid={`row-research-${index}`}>
-                  <td className="metric-cell" data-label="Metric">{row.metric}</td><td className="airline-cell" data-label="Airline">{row.airline}</td><td data-label="Financial year">{row.financialYear || '—'}</td><td data-label="Reporting period">{row.reportingPeriod || '—'}</td><td className="compact-hidden-column" data-label="Fiscal year-end">{row.fiscalYearEnd || '—'}</td><td data-label="Currency">{row.currency || '—'}</td><td data-label="Status">{row.status || '—'}</td>
-                  <td className={`amount-cell ${row.amount === null ? 'muted-cell' : ''}`} data-label="Amount">{formatAmount(row)}</td><td data-label="Date">{row.date || '—'}</td><td className="scope-cell compact-hidden-column" data-label="Reporting scope">{row.reportingScope || '—'}</td><td className="compact-hidden-column" data-label="IFRS16/ASC842 Adoption">{row.ifrs16Asc842Adoption || '—'}</td><td className="compact-hidden-column" data-label="In Administration">{row.inAdministration || '—'}</td><td className="compact-hidden-column" data-label="Value basis">{row.valueBasis || '—'}</td>
-                  <td data-label="Source link">{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
-                  <td className="compact-only-column" data-label="Additional fields">
+                  <td className="metric-cell results-col-metric" data-label="Metric">{row.metric}</td>
+                  {rowMetadataFields.map((field) => <td key={field.key} className={`results-col-${field.key} ${field.key === 'airline' ? 'airline-cell' : ''} ${field.compactHidden ? 'compact-hidden-column' : ''}`} data-label={field.label}>{field.value(row) || '—'}</td>)}
+                  <td className={`amount-cell results-col-amount ${row.amount === null ? 'muted-cell' : ''}`} data-label="Amount">{formatAmount(row)}</td>
+                  <td className="results-col-source" data-label="Source link">{row.sourceUrl ? <a className="source-link" href={row.sourceUrl} target="_blank" rel="noreferrer" title={row.sourceTitle ?? row.sourceUrl} data-testid={`link-source-${index}`}><span>{row.sourceTitle || 'View source'}</span><ChevronDown size={12} style={{ transform: 'rotate(-135deg)' }} /></a> : <span className="muted-cell">No source linked</span>}</td>
+                  {compactMetadataFields.length > 0 && <td className="compact-only-column" data-label="Additional fields">
                     <details className="result-extra-details">
                       <summary>More</summary>
-                      <dl>
-                        <div><dt>Fiscal year-end</dt><dd>{row.fiscalYearEnd || '—'}</dd></div>
-                        <div><dt>Reporting scope</dt><dd>{row.reportingScope || '—'}</dd></div>
-                        <div><dt>IFRS16/ASC842 adoption</dt><dd>{row.ifrs16Asc842Adoption || '—'}</dd></div>
-                        <div><dt>In administration</dt><dd>{row.inAdministration || '—'}</dd></div>
-                        <div><dt>Value basis</dt><dd>{row.valueBasis || '—'}</dd></div>
-                      </dl>
+                      <dl>{compactMetadataFields.map((field) => <div key={field.key}><dt>{field.label}</dt><dd>{field.value(row) || '—'}</dd></div>)}</dl>
                     </details>
-                  </td>
+                  </td>}
                 </tr>)}</tbody>
               </table>
             </div>}
