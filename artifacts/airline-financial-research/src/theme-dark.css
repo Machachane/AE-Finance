@@ -216,3 +216,8 @@ table td, table th { border-color: var(--ae-line) !important; }
   .analytics-shortcut-area { padding: 16px 12px 0; }
   .analytics-site-button { width: 100%; }
 }
+
+/* Keep secondary financial values legible without competing with key figures. */
+.results-table td:not(.metric-cell):not(.airline-cell):not(.amount-cell):not(.muted-cell) {
+  color: #9fb2c1 !important;
+}
