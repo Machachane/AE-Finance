@@ -36,35 +36,6 @@ function financialRow(
 function datasets(financials: FinancialRecord[]): AssistantDatasets {
   return {
     financials,
-    rankings: {
-      metadata: {
-        mlaSourceFile: 'mla-source.xlsx',
-        borrowerSourceFile: 'borrower-source.xlsx',
-        amountUnit: 'USD millions',
-        rankedDataNote: 'Source workbook totals shown as supplied.',
-      },
-      mlas: [
-        { name: 'Lender A', totalUsdM: 100, numberOfDeals: 3, capitalMarketsUsdM: 65, commercialUsdM: 35, year: 2025, reportingPeriod: 'H1' },
-        { name: 'Lender B', totalUsdM: 80, numberOfDeals: 2, capitalMarketsUsdM: 20, commercialUsdM: 60, year: 2025, reportingPeriod: 'H1' },
-        { name: 'UNDISCLOSED', totalUsdM: 500, numberOfDeals: 8, capitalMarketsUsdM: 500, commercialUsdM: 0, year: 2025, reportingPeriod: 'H1' },
-      ],
-      borrowers: [
-        { name: 'Borrower A', totalUsdM: 75, numberOfDeals: 2, year: 2025, reportingPeriod: 'H1' },
-      ],
-    },
-    analysis: {
-      sourceFile: 'finance-analysis.xlsx',
-      year: 2025,
-      periods: ['H1', 'H2'],
-      tables: [{
-        id: 'facility',
-        title: 'Facility Analysis',
-        rows: [
-          { label: 'Unsecured Notes/Bonds', valueKind: 'percentage', values: { H1: 0.5, H2: 0.4 } },
-          { label: 'Total ($Bn)', valueKind: 'usdBillions', values: { H1: 50, H2: 60 } },
-        ],
-      }],
-    },
   };
 }
 
@@ -154,34 +125,6 @@ test('ROE uses the prior year-end and current closing equity', () => {
 
   assert.match(answer.answer, /Return on equity \(period\)\*\*: 21\.43%/);
   assert.match(answer.answer, /not annualised/);
-});
-
-test('Aviation Finance rankings sort supplied totals and cite their workbook', () => {
-  const answer = answerAssistantPlan(normalizeAssistantPlan({
-    intent: 'aviation_ranking',
-    rankingType: 'capitalMarkets',
-    financialYear: '2025',
-    reportingPeriod: 'H1',
-  }), datasets([]));
-
-  assert.match(answer.answer, /\*\*Lender A\*\* — 65 USD millions/);
-  assert.ok(answer.answer.indexOf('Lender A') < answer.answer.indexOf('Lender B'));
-  assert.doesNotMatch(answer.answer, /UNDISCLOSED/);
-  assert.equal(answer.sources[0]?.label, 'mla-source.xlsx');
-  assert.deepEqual(answer.navigation, { label: 'Aviation Finance', href: '/aviation-finance?year=2025&period=H1' });
-});
-
-test('finance-analysis tables return period values with workbook citations', () => {
-  const answer = answerAssistantPlan(normalizeAssistantPlan({
-    intent: 'aviation_analysis',
-    tableId: 'facility',
-    financialYear: '2025',
-    reportingPeriod: 'H1',
-  }), datasets([]));
-
-  assert.match(answer.answer, /Unsecured Notes\/Bonds\*\*: 50%/);
-  assert.match(answer.answer, /Total \(\$Bn\)\*\*: 50 USD billions/);
-  assert.equal(answer.sources[0]?.label, 'finance-analysis.xlsx');
 });
 
 test('ratio navigation carries up to three selected airlines into the ratios tab', () => {
@@ -305,16 +248,4 @@ test('an unavailable airline-year-period combination is rejected even if the per
     financialYear: '2025', reportingPeriod: 'H1',
   }), data);
   assert.equal(result.navigation, undefined);
-});
-
-test('Aviation Finance preserves analysis-only periods and rejects unavailable combinations', () => {
-  const data = datasets([]);
-  const result = answerAssistantPlan(normalizeAssistantPlan({
-    intent: 'navigation', navigateTo: 'aviationFinance', financialYear: '2025', reportingPeriod: 'H2',
-  }), data);
-  assert.equal(result.navigation?.href, '/aviation-finance?year=2025&period=H2');
-  const unavailable = answerAssistantPlan(normalizeAssistantPlan({
-    intent: 'navigation', navigateTo: 'aviationFinance', financialYear: '2026', reportingPeriod: 'H2',
-  }), data);
-  assert.equal(unavailable.navigation, undefined);
 });

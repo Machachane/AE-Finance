@@ -11,8 +11,6 @@ import {
 const dataDir = resolve(import.meta.dirname, '../../../airline-financial-research/public/data');
 export const data: AssistantDatasets = {
   financials: JSON.parse(readFileSync(resolve(dataDir, 'airline-financials.json'), 'utf8')),
-  rankings: JSON.parse(readFileSync(resolve(dataDir, 'aviation-finance-rankings.json'), 'utf8')),
-  analysis: JSON.parse(readFileSync(resolve(dataDir, 'aviation-finance-analysis.json'), 'utf8')),
 };
 
 const empty = () => validateConversationContext(undefined, data);

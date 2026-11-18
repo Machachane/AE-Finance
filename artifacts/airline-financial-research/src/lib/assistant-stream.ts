@@ -26,7 +26,7 @@ export function safeAssistantNavigation(value: unknown): AssistantResult['naviga
     || typeof value.href !== 'string' || typeof value.label !== 'string') return null;
   const target = new URL(value.href, 'https://platform.invalid');
   if (!value.href.startsWith('/') || target.origin !== 'https://platform.invalid'
-    || !['/', '/statements', '/ratios', '/analytics', '/aviation-finance'].includes(target.pathname)) return null;
+    || !['/', '/statements', '/ratios', '/analytics'].includes(target.pathname)) return null;
   return { href: `${target.pathname}${target.search}`, label: value.label };
 }
 

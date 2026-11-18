@@ -19,54 +19,14 @@ export type FinancialRecord = {
   sourceUrl?: string | null;
 };
 
-export type RankingRow = {
-  name: string;
-  totalUsdM: number;
-  numberOfDeals: number;
-  capitalMarketsUsdM?: number;
-  commercialUsdM?: number;
-  reportingPeriod: string;
-  year: number;
-};
-
-export type RankingsData = {
-  metadata: {
-    mlaSourceFile: string;
-    borrowerSourceFile: string;
-    amountUnit: string;
-    rankedDataNote: string;
-  };
-  mlas: RankingRow[];
-  borrowers: RankingRow[];
-};
-
-export type AnalysisData = {
-  sourceFile: string;
-  year: number;
-  periods: string[];
-  tables: Array<{
-    id: string;
-    title: string;
-    rows: Array<{
-      label: string;
-      valueKind: 'percentage' | 'usdBillions' | string;
-      values: Record<string, number | null | undefined>;
-    }>;
-  }>;
-};
-
 export type AssistantDatasets = {
   financials: FinancialRecord[];
-  rankings: RankingsData;
-  analysis: AnalysisData;
 };
 
 export type AssistantPlan = {
   intent:
     | 'metric_lookup'
     | 'ratio_lookup'
-    | 'aviation_ranking'
-    | 'aviation_analysis'
     | 'navigation'
     | 'help'
     | 'unsupported';
@@ -75,11 +35,8 @@ export type AssistantPlan = {
   financialYear: string | null;
   reportingPeriod: string | null;
   ratioId: string | null;
-  rankingType: 'mlas' | 'borrowers' | 'capitalMarkets' | 'commercial' | null;
-  tableId: string | null;
-  rankLimit: number | null;
   trend: boolean;
-  navigateTo: 'financials' | 'statements' | 'ratios' | 'analytics' | 'aviationFinance' | null;
+  navigateTo: 'financials' | 'statements' | 'ratios' | 'analytics' | null;
 };
 
 export type AssistantSource = {
@@ -131,7 +88,6 @@ const PAGE_ROUTES: Record<NonNullable<AssistantPlan['navigateTo']>, { href: stri
   statements: { href: '/statements', label: 'Financial statements' },
   ratios: { href: '/ratios', label: 'Financial Ratios & KPIs' },
   analytics: { href: '/analytics', label: 'Airline Financial Analytics' },
-  aviationFinance: { href: '/aviation-finance', label: 'Aviation Finance' },
 };
 
 export function getAssistantCatalog(datasets: AssistantDatasets) {
@@ -147,12 +103,6 @@ export function getAssistantCatalog(datasets: AssistantDatasets) {
       { id: 'liquidity_summary', label: 'Liquidity ratios' },
       { id: 'all', label: 'All available ratios' },
     ],
-    rankingTypes: ['mlas', 'borrowers', 'capitalMarkets', 'commercial'],
-    rankingYears: unique(datasets.rankings.mlas.concat(datasets.rankings.borrowers).map((row) => String(row.year))).sort(),
-    rankingPeriods: unique(datasets.rankings.mlas.concat(datasets.rankings.borrowers).map((row) => row.reportingPeriod)).sort(comparePeriods),
-    analysisTables: datasets.analysis.tables.map((table) => ({ id: table.id, title: table.title })),
-    analysisYear: String(datasets.analysis.year),
-    analysisPeriods: unique(datasets.analysis.tables.flatMap((table) => table.rows.flatMap((row) => Object.keys(row.values)))).sort(comparePeriods),
   };
 }
 
@@ -191,10 +141,6 @@ function comparePeriodsByLatest(a: FinancialRecord, b: FinancialRecord) {
     || comparePeriods(b.reportingPeriod, a.reportingPeriod);
 }
 
-function isNamedEntity(name: string) {
-  const normalized = name.trim().toLocaleLowerCase();
-  return Boolean(normalized) && !/(undisclosed|non[-\s]?disclosed|unnamed|no mla|not disclosed|n\/a|unknown)/i.test(normalized);
-}
 
 function sourceLabel(url: string) {
   try {
@@ -215,16 +161,6 @@ function createSourceRegistry() {
         index = sources.length;
         indexes.set(url, index);
         sources.push({ label: sourceLabel(url), url });
-      }
-      return `[${index + 1}]`;
-    },
-    addFile(file: string) {
-      const key = `file:${file}`;
-      let index = indexes.get(key);
-      if (index === undefined) {
-        index = sources.length;
-        indexes.set(key, index);
-        sources.push({ label: file });
       }
       return `[${index + 1}]`;
     },
@@ -288,7 +224,6 @@ function findMetric(requested: string | null, records: FinancialRecord[]) {
 function defaultNavigationPage(plan: AssistantPlan): AssistantPlan['navigateTo'] {
   if (plan.navigateTo) return plan.navigateTo;
   if (plan.intent === 'ratio_lookup') return 'ratios';
-  if (plan.intent === 'aviation_ranking' || plan.intent === 'aviation_analysis') return 'aviationFinance';
   if (plan.intent === 'metric_lookup') {
     if (plan.airlines.length > 1) return null;
     return plan.trend ? 'analytics' : (plan.reportingPeriod ? 'statements' : 'financials');
@@ -310,7 +245,7 @@ function buildNavigation(
     ?? (page === 'ratios' && resolvedNames.length > 1 ? resolvedNames[0] : undefined)
     ?? (plan.airlines.length === 1 ? resolvedNames[0] : undefined);
 
-  if (airline && page !== 'aviationFinance') params.set('airline', airline);
+  if (airline) params.set('airline', airline);
   if (page === 'ratios' && resolvedNames.length > 1) {
     resolvedNames.slice(1, 3).forEach((name) => params.append('compare', name));
   }
@@ -323,24 +258,6 @@ function buildNavigation(
   const period = validPeriod(plan.reportingPeriod, datasets.financials);
   if (year && year !== undefined && page !== 'ratios' && page !== 'analytics') params.set('year', year);
   if (period && period !== undefined) params.set('period', period);
-
-  if (page === 'aviationFinance') {
-    const availableRows = datasets.rankings.mlas.concat(datasets.rankings.borrowers)
-      .concat(datasets.analysis.periods.map((reportingPeriod) => ({
-        name: '', totalUsdM: 0, numberOfDeals: 0, year: datasets.analysis.year, reportingPeriod,
-      })));
-    const rankingYear = plan.financialYear && availableRows.some((row) => String(row.year) === plan.financialYear)
-      ? plan.financialYear
-      : null;
-    const rankingPeriod = plan.reportingPeriod && availableRows.some((row) =>
-      (!rankingYear || String(row.year) === rankingYear) && row.reportingPeriod === plan.reportingPeriod)
-      ? plan.reportingPeriod
-      : null;
-    params.delete('year');
-    params.delete('period');
-    if (rankingYear) params.set('year', rankingYear);
-    if (rankingPeriod) params.set('period', rankingPeriod);
-  }
 
   const query = params.toString();
   return { label: route.label, href: query ? `${route.href}?${query}` : route.href };
@@ -812,98 +729,9 @@ function answerRatioLookup(plan: AssistantPlan, datasets: AssistantDatasets, nav
   return answerWithSources([lead, ...lines].join('\n'), { ...registry, sources }, navigation);
 }
 
-function latestRankingPeriod(rows: Array<{ year: number; reportingPeriod: string }>) {
-  return [...rows].sort((a, b) => b.year - a.year || comparePeriods(b.reportingPeriod, a.reportingPeriod))[0];
-}
-
-function answerRanking(plan: AssistantPlan, datasets: AssistantDatasets, navigation?: AssistantNavigation) {
-  const rankingType = plan.rankingType;
-  if (!rankingType) {
-    return clarification('Which Aviation Finance list do you want: top MLAs, borrowers, Capital Markets, or Commercial?');
-  }
-  const allRows = rankingType === 'borrowers' ? datasets.rankings.borrowers : datasets.rankings.mlas;
-  if (!allRows.length) return clarification('No aviation-finance ranking rows are available in the loaded data.');
-  const availableYears = unique(allRows.map((row) => row.year)).sort((a, b) => a - b);
-  if (plan.financialYear && !availableYears.includes(Number(plan.financialYear))) {
-    return clarification(`The loaded ${rankingType} data is available for ${availableYears.join(', ')}.`);
-  }
-  const yearRows = plan.financialYear
-    ? allRows.filter((row) => row.year === Number(plan.financialYear))
-    : allRows;
-  const availablePeriods = unique(yearRows.map((row) => row.reportingPeriod)).sort(comparePeriods);
-  if (plan.reportingPeriod && !availablePeriods.includes(plan.reportingPeriod)) {
-    return clarification(`For ${plan.financialYear ?? 'the available years'}, the loaded ${rankingType} data has these periods: ${availablePeriods.join(', ')}.`);
-  }
-  const latest = latestRankingPeriod(yearRows);
-  if (!latest) return clarification('No aviation-finance ranking rows are available in the loaded data.');
-  const year = plan.financialYear ? Number(plan.financialYear) : latest.year;
-  const period = plan.reportingPeriod ?? latest.reportingPeriod;
-  const selected = allRows.filter((row) => row.year === year && row.reportingPeriod === period && isNamedEntity(row.name));
-  const valueFor = (row: RankingRow) => rankingType === 'capitalMarkets'
-    ? row.capitalMarketsUsdM ?? 0
-    : rankingType === 'commercial'
-      ? row.commercialUsdM ?? 0
-      : row.totalUsdM;
-  const rows = selected
-    .filter((row) => valueFor(row) > 0)
-    .sort((a, b) => valueFor(b) - valueFor(a) || a.name.localeCompare(b.name))
-    .slice(0, rankingType === 'capitalMarkets' || rankingType === 'commercial' ? 5 : Math.min(Math.max(plan.rankLimit ?? 10, 1), 10));
-  if (!rows.length) return clarification(`No positive ${rankingType} ranking values were found for ${year} ${period}.`);
-
-  const kindLabel = rankingType === 'mlas' ? 'MLA'
-    : rankingType === 'borrowers' ? 'Borrower'
-      : rankingType === 'capitalMarkets' ? 'Capital Markets'
-        : 'Commercial';
-  const file = rankingType === 'borrowers' ? datasets.rankings.metadata.borrowerSourceFile : datasets.rankings.metadata.mlaSourceFile;
-  const registry = createSourceRegistry();
-  const citation = registry.addFile(file);
-  const lines = rows.map((row, index) => {
-    const value = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(valueFor(row));
-    return `${index + 1}. **${row.name}** — ${value} USD millions${row.numberOfDeals ? ` · ${row.numberOfDeals} deals` : ''}`;
-  });
-  const note = datasets.rankings.metadata.rankedDataNote;
-  const answer = `Top ${rows.length} ${kindLabel} results for ${year} ${period}, ranked by ${rankingType === 'capitalMarkets' ? 'Capital Markets total' : rankingType === 'commercial' ? 'Commercial total' : 'total value'} (${datasets.rankings.metadata.amountUnit}).\n${lines.join('\n')}\n${note}${citation ? ` ${citation}` : ''}`;
-  const resultNavigation = navigation?.label === PAGE_ROUTES.aviationFinance.label
-    ? { label: PAGE_ROUTES.aviationFinance.label, href: `${PAGE_ROUTES.aviationFinance.href}?${new URLSearchParams({ year: String(year), period })}` }
-    : navigation;
-  return answerWithSources(answer, registry, resultNavigation);
-}
-
-function answerAviationAnalysis(plan: AssistantPlan, datasets: AssistantDatasets, navigation?: AssistantNavigation) {
-  const { analysis } = datasets;
-  const table = analysis.tables.find((candidate) => candidate.id === plan.tableId || normalize(candidate.title) === normalize(plan.tableId ?? ''));
-  if (!table) {
-    const tables = analysis.tables.map((candidate) => candidate.title).join(', ');
-    return clarification(`Which Aviation Finance table are you asking about? Available tables: ${tables}.`);
-  }
-  const requestedYear = plan.financialYear ? Number(plan.financialYear) : analysis.year;
-  if (requestedYear !== analysis.year) {
-    return clarification(`The loaded ${table.title} workbook covers ${analysis.year}. I do not have that table for ${requestedYear}.`);
-  }
-  const periods = unique(table.rows.flatMap((row) => Object.keys(row.values)));
-  const period = plan.reportingPeriod && periods.includes(plan.reportingPeriod) ? plan.reportingPeriod : periods.sort(comparePeriods).at(-1);
-  if (!period) return clarification(`No reporting period is available for ${table.title}.`);
-  const registry = createSourceRegistry();
-  const citation = registry.addFile(analysis.sourceFile);
-  const lines = table.rows
-    .filter((row) => typeof row.values[period] === 'number' && Number.isFinite(row.values[period]))
-    .map((row) => {
-      const value = row.values[period]!;
-      const formatted = row.valueKind === 'percentage'
-        ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value * 100)}%`
-        : `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 }).format(value)} USD billions`;
-      return `• **${row.label}**: ${formatted}`;
-    });
-  if (!lines.length) return clarification(`No ${period} values are present in the loaded ${table.title} table.`);
-  const resultNavigation = navigation?.label === PAGE_ROUTES.aviationFinance.label
-    ? { label: PAGE_ROUTES.aviationFinance.label, href: `${PAGE_ROUTES.aviationFinance.href}?${new URLSearchParams({ year: String(analysis.year), period })}` }
-    : navigation;
-  return answerWithSources(`**${table.title} — FY${analysis.year} ${period}**\n${lines.join('\n')}\nSource workbook: ${analysis.sourceFile}${citation ? ` ${citation}` : ''}.`, registry, resultNavigation);
-}
-
 function answerNavigation(plan: AssistantPlan, datasets: AssistantDatasets) {
   const page = defaultNavigationPage(plan);
-  if (page && page !== 'aviationFinance') {
+  if (page) {
     if (!plan.airlines.length) return clarification('Which airline would you like to select on that page?');
     const resolved = resolveAirlines(plan.airlines, datasets.financials);
     if (resolved.some((name) => !name)) {
@@ -930,18 +758,9 @@ function answerNavigation(plan: AssistantPlan, datasets: AssistantDatasets) {
       plan = { ...plan, financialYear: nextYear, reportingPeriod: plan.reportingPeriod ?? periods[0]! };
     }
   }
-  if (page === 'aviationFinance') {
-    const available = datasets.rankings.mlas.concat(datasets.rankings.borrowers)
-      .map((row) => ({ year: String(row.year), period: row.reportingPeriod }))
-      .concat(datasets.analysis.periods.map((period) => ({ year: String(datasets.analysis.year), period })));
-    if (!available.some((row) => (!plan.financialYear || row.year === plan.financialYear)
-      && (!plan.reportingPeriod || row.period === plan.reportingPeriod))) {
-      return clarification('That year and reporting period combination is not available in Aviation Finance. Please choose a period listed on that page.');
-    }
-  }
   const navigation = buildNavigation(plan, datasets);
   if (!navigation) {
-    return clarification('Which platform page would you like to open? I can take you to Airline Financials, Financial Statements, Financial Ratios & KPIs, Airline Financial Analytics, or Aviation Finance.');
+    return clarification('Which platform page would you like to open? I can take you to Airline Financials, Financial Statements, Financial Ratios & KPIs, or Airline Financial Analytics.');
   }
   const params = new URL(navigation.href, 'https://platform.invalid').searchParams;
   const selections = [
@@ -958,14 +777,12 @@ function answerNavigation(plan: AssistantPlan, datasets: AssistantDatasets) {
 
 export function normalizeAssistantPlan(value: unknown): AssistantPlan {
   const raw = value && typeof value === 'object' ? value as Record<string, unknown> : {};
-  const intents: AssistantPlan['intent'][] = ['metric_lookup', 'ratio_lookup', 'aviation_ranking', 'aviation_analysis', 'navigation', 'help', 'unsupported'];
-  const rankingTypes: NonNullable<AssistantPlan['rankingType']>[] = ['mlas', 'borrowers', 'capitalMarkets', 'commercial'];
-  const pages: NonNullable<AssistantPlan['navigateTo']>[] = ['financials', 'statements', 'ratios', 'analytics', 'aviationFinance'];
+  const intents: AssistantPlan['intent'][] = ['metric_lookup', 'ratio_lookup', 'navigation', 'help', 'unsupported'];
+  const pages: NonNullable<AssistantPlan['navigateTo']>[] = ['financials', 'statements', 'ratios', 'analytics'];
   const stringOrNull = (candidate: unknown) => typeof candidate === 'string' && candidate.length <= 160 ? candidate.trim() || null : null;
   const airlines = Array.isArray(raw.airlines)
     ? raw.airlines.filter((name): name is string => typeof name === 'string' && name.trim().length > 0 && name.length <= 160).slice(0, 4).map((name) => name.trim())
     : [];
-  const rankLimit = typeof raw.rankLimit === 'number' && Number.isFinite(raw.rankLimit) ? Math.floor(raw.rankLimit) : null;
   return {
     intent: intents.includes(raw.intent as AssistantPlan['intent']) ? raw.intent as AssistantPlan['intent'] : 'help',
     airlines,
@@ -973,9 +790,6 @@ export function normalizeAssistantPlan(value: unknown): AssistantPlan {
     financialYear: stringOrNull(raw.financialYear),
     reportingPeriod: stringOrNull(raw.reportingPeriod),
     ratioId: stringOrNull(raw.ratioId),
-    rankingType: rankingTypes.includes(raw.rankingType as NonNullable<AssistantPlan['rankingType']>) ? raw.rankingType as AssistantPlan['rankingType'] : null,
-    tableId: stringOrNull(raw.tableId),
-    rankLimit,
     trend: raw.trend === true,
     navigateTo: pages.includes(raw.navigateTo as NonNullable<AssistantPlan['navigateTo']>) ? raw.navigateTo as AssistantPlan['navigateTo'] : null,
   };
@@ -988,16 +802,12 @@ export function answerAssistantPlan(plan: AssistantPlan, datasets: AssistantData
       return answerMetricLookup(plan, datasets, navigation);
     case 'ratio_lookup':
       return answerRatioLookup(plan, datasets, navigation);
-    case 'aviation_ranking':
-      return answerRanking(plan, datasets, navigation);
-    case 'aviation_analysis':
-      return answerAviationAnalysis(plan, datasets, navigation);
     case 'navigation':
       return answerNavigation(plan, datasets);
     case 'help':
-      return clarification('Ask about a named airline’s reported metric or calculated KPI, historical trends, balance-sheet or profit-and-loss values, Aviation Finance rankings, or the loaded Finance Analysis tables. I use only the data already supplied to this platform and link the source workbook or official source when available.');
+      return clarification('Ask about a named airline’s reported metric or calculated KPI, historical trends, or balance-sheet and profit-and-loss values. I use only the data already supplied to this platform and link the source workbook or official source when available.');
     case 'unsupported':
-      return clarification('I can answer only from the data loaded in this platform. I cannot verify new figures from the web or rank raw airline amounts across different currencies. Try a named airline, metric, financial year/reporting period, KPI, or Aviation Finance category.');
+      return clarification('I can answer only from the data loaded in this platform. I cannot verify new figures from the web or rank raw airline amounts across different currencies. Try a named airline, metric, financial year/reporting period, or KPI.');
   }
 }
 

@@ -16,12 +16,11 @@ const SECTIONS = [
   { value: 'statements', label: 'Financial Statements', path: '/statements' },
   { value: 'ratios', label: 'Financial Ratios & KPIs', path: '/ratios' },
   { value: 'analytics', label: 'Airline Financial Analytics', path: '/analytics' },
-  { value: 'aviation-finance', label: 'Aviation Finance', path: '/aviation-finance' },
 ] as const;
 type Section = (typeof SECTIONS)[number]['value'];
 
 const schema = z.object({
-  section: z.enum(['financials', 'statements', 'ratios', 'analytics', 'aviation-finance']),
+  section: z.enum(['financials', 'statements', 'ratios', 'analytics']),
   message: z
     .string()
     .refine((v) => v.trim().length > 0, 'Write a message before sending.')

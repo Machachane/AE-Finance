@@ -30,24 +30,25 @@ async function server(t: TestContext, save: Parameters<typeof createFeedbackRout
   };
 }
 
-test('all five sections save trimmed messages and return a receipt without feedback text', async (t) => {
+test('all four sections save trimmed messages and return a receipt without feedback text', async (t) => {
   const saved: unknown[] = [];
   const api = await server(t, async (body) => { saved.push(body); return receipt; });
-  for (const section of ['financials', 'statements', 'ratios', 'analytics', 'aviation-finance']) {
+  for (const section of ['financials', 'statements', 'ratios', 'analytics']) {
     const response = await api.send({ section, message: '  Please add more guidance.  ' });
     assert.equal(response.status, 201);
     assert.deepEqual(await response.json(), { id: receipt.id, createdAt: receipt.createdAt.toISOString() });
     assert.equal(response.headers.get('cache-control'), 'no-store');
   }
   assert.deepEqual(saved[0], { section: 'financials', message: 'Please add more guidance.' });
-  assert.equal(saved.length, 5);
+  assert.equal(saved.length, 4);
   assert.equal(api.logs.join('').includes('Please add more guidance'), false);
 });
 
 test('invalid sections, blank messages and oversized messages are rejected before saving', async (t) => {
   const api = await server(t, async () => { assert.fail('Invalid feedback must not save'); });
   for (const body of [
-    {}, { section: 'other', message: 'Hello' }, { section: 'ratios', message: '   ' },
+    {}, { section: 'other', message: 'Hello' }, { section: 'aviation-finance', message: 'Retired section' },
+    { section: 'ratios', message: '   ' },
     { section: 'ratios', message: '' }, { section: 'ratios', message: 'x'.repeat(5001) },
     { section: 'ratios', message: 42 },
   ]) {

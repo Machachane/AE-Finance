@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
 export const feedbackTable = pgTable('feedback', {
   id: uuid('id').primaryKey().defaultRandom(),
   section: text('section', {
-    enum: ['financials', 'statements', 'ratios', 'analytics', 'aviation-finance'],
+    enum: ['financials', 'statements', 'ratios', 'analytics'],
   }).notNull(),
   message: text('message').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

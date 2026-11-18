@@ -17,5 +17,4 @@ export const AssistantQueryPlanNavigateTo = {
   statements: 'statements',
   ratios: 'ratios',
   analytics: 'analytics',
-  aviationFinance: 'aviationFinance',
 } as const;

@@ -14,5 +14,4 @@ export const FeedbackInputSection = {
   statements: 'statements',
   ratios: 'ratios',
   analytics: 'analytics',
-  'aviation-finance': 'aviation-finance',
 } as const;

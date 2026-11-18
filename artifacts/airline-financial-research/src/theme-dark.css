@@ -43,7 +43,7 @@ html, body, #root, .app-shell { background: var(--ae-bg) !important; color: var(
 
 /* Panels / surfaces: every light surface goes navy */
 .panel, [class*="-panel"]:not(.assistant-panel *), [class*="-card"], [class*="-board"],
-.af-controls, .feedback-dialog, .assistant-panel, [role="dialog"], [role="menu"], [role="listbox"],
+.feedback-dialog, .assistant-panel, [role="dialog"], [role="menu"], [role="listbox"],
 [data-radix-popper-content-wrapper] > *, .recharts-default-tooltip, [class*="tooltip"]:not(.recharts-tooltip-cursor) {
   background-color: var(--ae-panel) !important;
   border-color: var(--ae-line) !important;
@@ -53,15 +53,15 @@ html, body, #root, .app-shell { background: var(--ae-bg) !important; color: var(
 .panel { box-shadow: none !important; }
 
 /* Headings & text */
-h1, h2, h3, h4, strong, .hero h1, .af-heading h1, .statements-hero h1 { color: var(--ae-text) !important; }
-p, label, .hero p, .af-heading p, .statements-hero p, td, li { color: var(--ae-text-2); }
-.eyebrow, .statement-kicker, .af-kicker, .af-heading-stamp span, [class*="kicker"] { color: var(--ae-link) !important; }
+h1, h2, h3, h4, strong, .hero h1, .statements-hero h1 { color: var(--ae-text) !important; }
+p, label, .hero p, .statements-hero p, td, li { color: var(--ae-text-2); }
+.eyebrow, .statement-kicker, [class*="kicker"] { color: var(--ae-link) !important; }
 [class*="muted"], [class*="hint"], [class*="meta"], [class*="foot"], [class*="note"], .step-number, small, .field-hint { color: var(--ae-muted) !important; }
 .hero::after { background: var(--ae-mint) !important; }
 
 /* Generic tinted boxes */
 [class*="caveat"], [class*="disclosure"], .boundary-note, .coverage, .results-meta, [class*="stamp"], [class*="intro"],
-.empty-icon, .af-filter-icon, .results-count, .af-limit, [class*="chip"], [class*="pill"], [class*="badge"]:not(.status-badge),
+.empty-icon, .results-count, [class*="chip"], [class*="pill"], [class*="badge"]:not(.status-badge),
 [class*="summary"], [class*="welcome"], [class*="source-file"], [class*="sources"], [class*="privacy"] {
   background-color: var(--ae-panel-2) !important;
   border-color: var(--ae-line-2) !important;
@@ -100,14 +100,14 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--ae-mint); }
 .assistant-launcher svg { color: var(--ae-mint-ink); }
 
 /* Tables */
-table th, .results-table th, .statement-table th, .af-table thead th {
+table th, .results-table th, .statement-table th {
   background: #102236 !important; color: var(--ae-text-2) !important; border-color: var(--ae-line-2) !important;
 }
 table td, table tbody th { border-color: var(--ae-line) !important; color: var(--ae-text-2); background: transparent; }
 table tbody tr:nth-child(even) > * { background-color: var(--ae-stripe); }
 table tbody tr:hover > * { background-color: #1b3550 !important; }
 .metric-cell, .airline-cell, .amount-cell, table td strong { color: var(--ae-text) !important; }
-.metric-list, .statement-category-cell, .section-heading, .results-top, .af-board-head, .statement-panel-head, .footnote, .af-period-meta { border-color: var(--ae-line) !important; }
+.metric-list, .statement-category-cell, .section-heading, .results-top, .statement-panel-head, .footnote { border-color: var(--ae-line) !important; }
 .metric-item { color: var(--ae-text-2) !important; }
 .metric-item:hover { background: var(--ae-panel-2) !important; }
 
@@ -136,15 +136,15 @@ a.source-link, .statement-source, .assistant-panel a, [class*="link"]:not(.main-
 [data-state="open"][class*="fixed"][class*="inset-0"] { background: rgba(4,10,18,.72) !important; }
 
 /* Page-specific light surfaces */
-.analytics-heading-note, .ratio-heading-stamp, .af-heading-stamp, .analytics-selection-strip, .ratio-context-bar,
+.analytics-heading-note, .ratio-heading-stamp, .analytics-selection-strip, .ratio-context-bar,
 .analytics-tooltip, .ratio-chart-tooltip, .ratio-download, .airline-entry, .airline-picker-control, .airline-picker-trigger,
 .airline-picker-listbox, .assistant-composer, .assistant-welcome button, .assistant-message, .analytics-step > span,
 .ratio-period-pill, .ratio-health-icon, .analytics-empty-mark, .ratio-empty-icon, .ratio-comparison-notice,
 .analytics-formula-note, .analytics-inline-empty, .analytics-disclosure, .ratio-skeleton-chart, .ratio-skeleton-table {
   background-color: var(--ae-panel-2) !important; border-color: var(--ae-line-2) !important; color: var(--ae-text-2) !important;
 }
-.analytics-heading-note, .ratio-heading-stamp, .af-heading-stamp { border-left-color: var(--ae-teal) !important; }
-.analytics-heading-note strong, .ratio-heading-stamp strong, .af-heading-stamp strong, .analytics-selection-strip strong { color: var(--ae-text) !important; }
+.analytics-heading-note, .ratio-heading-stamp { border-left-color: var(--ae-teal) !important; }
+.analytics-heading-note strong, .ratio-heading-stamp strong, .analytics-selection-strip strong { color: var(--ae-text) !important; }
 .assistant-message-user { background: var(--ae-teal) !important; color: #fff !important; }
 .assistant-message-user * { color: #fff !important; }
 .airline-picker-option.is-active, .airline-picker-option:hover { background: #1e3851 !important; color: #fff !important; }
@@ -172,7 +172,7 @@ a.source-link, .statement-source, .assistant-panel a, [class*="link"]:not(.main-
   border-color: var(--ae-teal) !important;
   box-shadow: 0 0 0 3px rgba(42,157,150,.2);
 }
-.af-bar-track, .analytics-composition-track, .ratio-skeleton-chart span, .analytics-loading-heading, .analytics-loading-cards i, .analytics-loading-chart { background: #1d3349 !important; }
+.analytics-composition-track, .ratio-skeleton-chart span, .analytics-loading-heading, .analytics-loading-cards i, .analytics-loading-chart { background: #1d3349 !important; }
 .statement-field, .feedback-field, label, [class*="label"] { color: var(--ae-text-2) !important; }
 .ratio-footnote, .ratio-health-foot, .ratio-category-label, .ratio-comparison-table .ratio-comparison-category th,
 [class*="footnote"], [class*="category-cell"], [class*="-category"] th, tbody th {
@@ -183,9 +183,7 @@ table td, table th { border-color: var(--ae-line) !important; }
 .ratio-tone-watch { background: rgba(240,127,51,.15) !important; color: #f6a66b !important; }
 .ratio-tone-attention { background: rgba(229,83,75,.15) !important; color: #ff9d94 !important; }
 .ratio-tone-neutral, .ratio-tone-unavailable { background: rgba(142,164,183,.14) !important; color: #a8bccb !important; }
-.af-table td, .af-table td * { color: var(--ae-text-2) !important; }
-.af-table td:nth-child(3), .af-table td [class*="value"], .af-table td [class*="amount"] { color: var(--ae-text) !important; }
-.af-heading h1 em, .ratio-heading h1 em, .analytics-heading h1 em { color: var(--ae-link) !important; }
+.ratio-heading h1 em, .analytics-heading h1 em { color: var(--ae-link) !important; }
 
 /* Highlighted companion platform link */
 .analytics-shortcut-area {

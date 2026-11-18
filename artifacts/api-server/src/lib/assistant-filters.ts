@@ -55,7 +55,7 @@ export function unresolvedNavigationText(message: string, datasets: AssistantDat
     ...new Set(datasets.financials.map((row) => row.airline)),
     ...new Set(datasets.financials.map((row) => row.metric)),
     'financial ratios', 'financial statements', 'profit and loss', 'profit loss', 'balance sheets', 'balance sheet',
-    'airline financial analytics', 'airline analytics', 'airline financials', 'aviation finance',
+    'airline financial analytics', 'airline analytics', 'airline financials',
   ].sort((a, b) => b.length - a.length);
   for (const phrase of phrases) remaining = removePhrase(remaining, phrase);
   return remaining

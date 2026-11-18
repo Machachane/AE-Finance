@@ -16,7 +16,7 @@ export const submitFeedbackBodyMessageMax = 5000;
 
 
 export const SubmitFeedbackBody = zod.object({
-  "section": zod.enum(['financials', 'statements', 'ratios', 'analytics', 'aviation-finance']),
+  "section": zod.enum(['financials', 'statements', 'ratios', 'analytics']),
   "message": zod.string().min(1).max(submitFeedbackBodyMessageMax)
 })
 
@@ -65,8 +65,6 @@ export const streamFinanceAssistantBodyContextRequestReportingPeriodMax = 160;
 
 export const streamFinanceAssistantBodyContextRequestRatioIdMax = 160;
 
-export const streamFinanceAssistantBodyContextRequestTableIdMax = 160;
-
 
 
 export const StreamFinanceAssistantBody = zod.object({
@@ -82,17 +80,14 @@ export const StreamFinanceAssistantBody = zod.object({
   "reportingPeriod": zod.string().max(streamFinanceAssistantBodyContextSelectionReportingPeriodMax).nullable()
 }),
   "request": zod.object({
-  "intent": zod.enum(['metric_lookup', 'ratio_lookup', 'aviation_ranking', 'aviation_analysis', 'navigation', 'help', 'unsupported']),
+  "intent": zod.enum(['metric_lookup', 'ratio_lookup', 'navigation', 'help', 'unsupported']),
   "airlines": zod.array(zod.string().max(streamFinanceAssistantBodyContextRequestAirlinesItemMax)).max(streamFinanceAssistantBodyContextRequestAirlinesMax),
   "metric": zod.string().max(streamFinanceAssistantBodyContextRequestMetricMax).nullable(),
   "financialYear": zod.string().max(streamFinanceAssistantBodyContextRequestFinancialYearMax).nullable(),
   "reportingPeriod": zod.string().max(streamFinanceAssistantBodyContextRequestReportingPeriodMax).nullable(),
   "ratioId": zod.string().max(streamFinanceAssistantBodyContextRequestRatioIdMax).nullable(),
-  "rankingType": zod.union([zod.literal('mlas'),zod.literal('borrowers'),zod.literal('capitalMarkets'),zod.literal('commercial'),zod.literal(null)]).nullable(),
-  "tableId": zod.string().max(streamFinanceAssistantBodyContextRequestTableIdMax).nullable(),
-  "rankLimit": zod.number().int().nullable(),
   "trend": zod.boolean(),
-  "navigateTo": zod.union([zod.literal('financials'),zod.literal('statements'),zod.literal('ratios'),zod.literal('analytics'),zod.literal('aviationFinance'),zod.literal(null)]).nullable()
+  "navigateTo": zod.union([zod.literal('financials'),zod.literal('statements'),zod.literal('ratios'),zod.literal('analytics'),zod.literal(null)]).nullable()
 }).optional()
 }).optional()
 })

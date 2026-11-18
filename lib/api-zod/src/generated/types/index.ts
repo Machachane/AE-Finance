@@ -14,7 +14,6 @@ export * from './assistantConversationContext';
 export * from './assistantQueryPlan';
 export * from './assistantQueryPlanIntent';
 export * from './assistantQueryPlanNavigateTo';
-export * from './assistantQueryPlanRankingType';
 export * from './assistantSelection';
 export * from './feedbackError';
 export * from './feedbackInput';

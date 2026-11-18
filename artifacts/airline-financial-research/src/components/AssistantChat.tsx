@@ -165,7 +165,7 @@ export default function AssistantChat() {
               <div className="assistant-welcome">
                 <span className="assistant-welcome-icon"><Bot size={22} /></span>
                 <h2>Ask about airline finance</h2>
-                <p>Look up reported figures, calculate ratios, explore trends, or find Aviation Finance rankings.</p>
+                <p>Look up reported figures, calculate ratios, explore trends, or open financial statements.</p>
                 <button type="button" onClick={() => void submitQuestion(undefined, 'What can you answer using the platform data?')}>
                   What can I ask?
                 </button>

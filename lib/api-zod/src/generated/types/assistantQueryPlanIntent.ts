@@ -12,8 +12,6 @@ export type AssistantQueryPlanIntent = typeof AssistantQueryPlanIntent[keyof typ
 export const AssistantQueryPlanIntent = {
   metric_lookup: 'metric_lookup',
   ratio_lookup: 'ratio_lookup',
-  aviation_ranking: 'aviation_ranking',
-  aviation_analysis: 'aviation_analysis',
   navigation: 'navigation',
   help: 'help',
   unsupported: 'unsupported',

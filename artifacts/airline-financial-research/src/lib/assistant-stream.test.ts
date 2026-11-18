@@ -45,7 +45,7 @@ test('invalid stream data or done without a result cannot produce a completed an
 });
 
 test('navigation accepts only internal supported destinations', () => {
-  for (const href of ['https://evil.test/ratios', '//evil.test/ratios', '/unknown', 'javascript:alert(1)']) {
+  for (const href of ['https://evil.test/ratios', '//evil.test/ratios', '/unknown', '/aviation-finance', 'javascript:alert(1)']) {
     assert.equal(safeAssistantNavigation({ href, label: 'Open' }), null);
   }
 });

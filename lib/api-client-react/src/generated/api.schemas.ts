@@ -13,7 +13,6 @@ export const FeedbackInputSection = {
   statements: 'statements',
   ratios: 'ratios',
   analytics: 'analytics',
-  'aviation-finance': 'aviation-finance',
 } as const;
 
 export interface FeedbackInput {
@@ -76,24 +75,9 @@ export type AssistantQueryPlanIntent = typeof AssistantQueryPlanIntent[keyof typ
 export const AssistantQueryPlanIntent = {
   metric_lookup: 'metric_lookup',
   ratio_lookup: 'ratio_lookup',
-  aviation_ranking: 'aviation_ranking',
-  aviation_analysis: 'aviation_analysis',
   navigation: 'navigation',
   help: 'help',
   unsupported: 'unsupported',
-} as const;
-
-/**
- * @nullable
- */
-export type AssistantQueryPlanRankingType = typeof AssistantQueryPlanRankingType[keyof typeof AssistantQueryPlanRankingType] | null;
-
-
-export const AssistantQueryPlanRankingType = {
-  mlas: 'mlas',
-  borrowers: 'borrowers',
-  capitalMarkets: 'capitalMarkets',
-  commercial: 'commercial',
 } as const;
 
 /**
@@ -107,7 +91,6 @@ export const AssistantQueryPlanNavigateTo = {
   statements: 'statements',
   ratios: 'ratios',
   analytics: 'analytics',
-  aviationFinance: 'aviationFinance',
 } as const;
 
 export interface AssistantQueryPlan {
@@ -137,15 +120,6 @@ export interface AssistantQueryPlan {
      * @nullable
      */
   ratioId: string | null;
-  /** @nullable */
-  rankingType: AssistantQueryPlanRankingType;
-  /**
-     * @maxLength 160
-     * @nullable
-     */
-  tableId: string | null;
-  /** @nullable */
-  rankLimit: number | null;
   trend: boolean;
   /** @nullable */
   navigateTo: AssistantQueryPlanNavigateTo;

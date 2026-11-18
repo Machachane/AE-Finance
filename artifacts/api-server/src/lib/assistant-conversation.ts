@@ -31,7 +31,6 @@ function requestedPage(message: string): AssistantPlan['navigateTo'] {
   if (/\b(?:ratios?|kpis?)\b/i.test(message)) return 'ratios';
   if (/\b(?:balance sheets?|profit\s*(?:&|and)\s*loss|financial statements?|statements)\b/i.test(message)) return 'statements';
   if (/\b(?:airline\s+financial\s+analytics|analytics)\b/i.test(message)) return 'analytics';
-  if (/\baviation finance\b/i.test(message)) return 'aviationFinance';
   if (/\bairline financials\b/i.test(message)) return 'financials';
   return null;
 }
@@ -95,9 +94,6 @@ export function conversationContextAfterPlan(
 ): AssistantConversationContext {
   plan = normalizeAssistantPlan(plan);
   if (plan.intent === 'help' || plan.intent === 'unsupported') return previous;
-  if (plan.navigateTo === 'aviationFinance' || plan.intent.startsWith('aviation_')) {
-    return { ...previous, request: plan };
-  }
   // Store the request even when it awaits clarification. Selection contains
   // only catalog-validated values; unresolved request values still block links.
   const checked = validateConversationContext({

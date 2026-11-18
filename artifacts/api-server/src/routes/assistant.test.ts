@@ -13,8 +13,6 @@ import type { AssistantChatError } from '@workspace/api-zod';
 const directory = resolve(import.meta.dirname, '../../../airline-financial-research/public/data');
 const data: AssistantDatasets = {
   financials: JSON.parse(readFileSync(resolve(directory, 'airline-financials.json'), 'utf8')),
-  rankings: JSON.parse(readFileSync(resolve(directory, 'aviation-finance-rankings.json'), 'utf8')),
-  analysis: JSON.parse(readFileSync(resolve(directory, 'aviation-finance-analysis.json'), 'utf8')),
 };
 
 async function server(t: TestContext, options: Parameters<typeof createAssistantRouter>[0] = {}) {

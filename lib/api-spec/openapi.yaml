@@ -112,7 +112,7 @@ components:
       properties:
         section:
           type: string
-          enum: [financials, statements, ratios, analytics, aviation-finance]
+          enum: [financials, statements, ratios, analytics]
         message:
           type: string
           minLength: 1
@@ -199,11 +199,11 @@ components:
     AssistantQueryPlan:
       type: object
       additionalProperties: false
-      required: [intent, airlines, metric, financialYear, reportingPeriod, ratioId, rankingType, tableId, rankLimit, trend, navigateTo]
+      required: [intent, airlines, metric, financialYear, reportingPeriod, ratioId, trend, navigateTo]
       properties:
         intent:
           type: string
-          enum: [metric_lookup, ratio_lookup, aviation_ranking, aviation_analysis, navigation, help, unsupported]
+          enum: [metric_lookup, ratio_lookup, navigation, help, unsupported]
         airlines:
           type: array
           maxItems: 4
@@ -222,19 +222,11 @@ components:
         ratioId:
           type: [string, "null"]
           maxLength: 160
-        rankingType:
-          type: [string, "null"]
-          enum: [mlas, borrowers, capitalMarkets, commercial, null]
-        tableId:
-          type: [string, "null"]
-          maxLength: 160
-        rankLimit:
-          type: [integer, "null"]
         trend:
           type: boolean
         navigateTo:
           type: [string, "null"]
-          enum: [financials, statements, ratios, analytics, aviationFinance, null]
+          enum: [financials, statements, ratios, analytics, null]
     AssistantConversationContext:
       type: object
       additionalProperties: false

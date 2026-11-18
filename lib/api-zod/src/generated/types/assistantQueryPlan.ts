@@ -7,7 +7,6 @@
  */
 import type { AssistantQueryPlanIntent } from './assistantQueryPlanIntent';
 import type { AssistantQueryPlanNavigateTo } from './assistantQueryPlanNavigateTo';
-import type { AssistantQueryPlanRankingType } from './assistantQueryPlanRankingType';
 
 export interface AssistantQueryPlan {
   intent: AssistantQueryPlanIntent;
@@ -36,15 +35,6 @@ export interface AssistantQueryPlan {
      * @nullable
      */
   ratioId: string | null;
-  /** @nullable */
-  rankingType: AssistantQueryPlanRankingType;
-  /**
-     * @maxLength 160
-     * @nullable
-     */
-  tableId: string | null;
-  /** @nullable */
-  rankLimit: number | null;
   trend: boolean;
   /** @nullable */
   navigateTo: AssistantQueryPlanNavigateTo;
